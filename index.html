@@ -37,22 +37,28 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
 
-    /* Hero canvas container */
-    #hero {
+    /* Hero + intro combined */
+    #hero-wrap {
+        position: relative;
         width: 100vw;
         height: 100vh;
+        min-height: 600px;
         background: #000610;
-        position: relative;
         overflow: hidden;
     }
+    #hero {
+        position: absolute;
+        inset: 0;
+    }
 
-    /* Intro section */
+    /* Intro overlaid on hero */
     #intro {
-        position: relative;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
         z-index: 10;
-        margin-top: -1px;
-        background: #000610;
-        padding: 64px 24px 80px;
+        padding: 0 24px 80px;
         text-align: center;
     }
     #intro .inner { max-width: 640px; margin: 0 auto; }
@@ -307,22 +313,21 @@
 </head>
 <body>
 
-<!-- Hero: Three.js pirate ship -->
-<div id="hero"></div>
-
-<!-- Intro -->
-<section id="intro">
-    <div class="inner">
-        <p class="label">whoiswriting</p>
-        <h1>Cole Ryan</h1>
-        <p class="tagline">Writing insights on business, life, philosophy, and entrepreneurship.</p>
-        <div class="buttons">
-            <a href="#subscribe" class="btn-primary">Subscribe</a>
-            <a href="#articles" class="btn-secondary">Read Articles</a>
+<!-- Hero + Intro combined -->
+<div id="hero-wrap">
+    <div id="hero"></div>
+    <section id="intro">
+        <div class="inner">
+            <p class="label">whoiswriting</p>
+            <h1>Cole Ryan</h1>
+            <p class="tagline">Writing insights on business, life, philosophy, and entrepreneurship.</p>
+            <div class="buttons">
+                <a href="#subscribe" class="btn-primary">Subscribe</a>
+                <a href="#articles" class="btn-secondary">Read Articles</a>
+            </div>
         </div>
-    </div>
-    <div class="gradient-fade"></div>
-</section>
+    </section>
+</div>
 
 <!-- Subscribe -->
 <section id="subscribe">

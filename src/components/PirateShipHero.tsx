@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 const COUNT = 20000;
 const NW = Math.floor(COUNT * 0.58);
@@ -292,8 +292,13 @@ export default function PirateShipHero() {
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full"
-      style={{ background: "#000610" }}
+      style={{
+        width: "100vw",
+        height: "100vh",
+        background: "#000610",
+        position: "relative",
+        overflow: "hidden",
+      }}
     />
   );
 }

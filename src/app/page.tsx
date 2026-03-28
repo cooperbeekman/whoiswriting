@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import PirateShipHero from "@/components/PirateShipHero";
+import ReceiptHero from "@/components/ReceiptHero";
 import SubscribeForm from "@/components/SubscribeForm";
 import Articles from "@/components/Articles";
 import Footer from "@/components/Footer";
@@ -7,8 +7,8 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <main>
-      {/* Full-screen animation — no overlapping text */}
-      <PirateShipHero />
+      {/* Full-screen receipt animation */}
+      <ReceiptHero />
 
       {/* Intro section directly below the animation */}
       <section className="relative z-10 -mt-1 bg-[#000610] px-6 pb-20 pt-16 text-center">

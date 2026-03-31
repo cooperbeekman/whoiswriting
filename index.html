@@ -6,15 +6,122 @@
 <title>whoiswriting — Cole Ryan</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#e8e4df;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab}
-canvas.grabbing{cursor:grabbing}
-.hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#b0a99f;font-size:13px;letter-spacing:.06em;font-weight:300;font-family:system-ui,-apple-system,sans-serif;pointer-events:none;z-index:1}
+body{background:radial-gradient(ellipse at 50% 38%,#eceae7,#d9d6d1);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+canvas#c{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab}
+canvas#c.grabbing{cursor:grabbing}
+.hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#a8a29e;font-size:13px;letter-spacing:.06em;font-weight:300;pointer-events:none;z-index:1;opacity:.8}
+.grab-dot{position:fixed;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);border:2px solid rgba(0,0,0,.12);pointer-events:none;transform:translate(-50%,-50%);z-index:2;display:none;box-shadow:0 0 16px rgba(0,0,0,.05)}
+/* Subscribe overlay */
+.overlay{position:fixed;inset:0;z-index:10;display:none;opacity:0;transition:opacity .3s ease}
+.overlay.show{display:flex;opacity:1}
+.overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.sub-modal{position:relative;margin:auto;background:#f6f2eb;padding:48px 40px;max-width:380px;width:90%;font-family:'Courier New',monospace;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.sub-modal h2{font-size:18px;letter-spacing:.12em;text-align:center;margin-bottom:28px;font-weight:700}
+.sub-modal label{display:block;font-size:11px;color:#999;letter-spacing:.08em;margin-bottom:4px}
+.sub-modal input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:inherit;font-size:15px;color:#1a1a1a;outline:none;margin-bottom:20px;-webkit-user-select:text;user-select:text}
+.sub-modal input:focus{border-bottom-color:#1a1a1a}
+.sub-modal button{display:block;width:100%;padding:12px;background:#1a1a1a;color:#f5f1ea;border:none;font-family:inherit;font-size:13px;letter-spacing:.12em;cursor:pointer}
+.sub-modal button:hover{background:#333}
+.sub-modal .msg{text-align:center;font-size:13px;margin-top:16px}
+.sub-modal .close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;padding:0;width:auto;letter-spacing:0}
+.sub-modal .close:hover{color:#555}
+/* Article list — bloomberg terminal style */
+.list-view{position:fixed;inset:0;z-index:15;display:none;overflow-y:auto;-webkit-user-select:text;user-select:text;background:#f6f2eb;font-family:'Courier New',Courier,monospace;color:#1a1a1a}
+.list-view.show{display:block}
+.list-inner{max-width:800px;margin:0 auto;padding:32px 24px 120px}
+.list-topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #2a2a2a;margin-bottom:0}
+.list-topbar h2{font-size:11px;letter-spacing:.18em;font-weight:700;color:#1a1a1a}
+.list-topbar .close-list{background:none;border:none;font-family:inherit;font-size:11px;letter-spacing:.1em;color:#999;cursor:pointer;padding:4px 0}
+.list-topbar .close-list:hover{color:#1a1a1a}
+.list-head{display:grid;grid-template-columns:40px 90px 1fr;padding:10px 0 8px;border-bottom:1px solid #ddd8d0;font-size:9px;letter-spacing:.15em;color:#999;font-weight:600}
+.list-row{display:grid;grid-template-columns:40px 90px 1fr;padding:0;border-bottom:1px solid #eae6df;text-decoration:none;color:inherit;transition:background .1s}
+.list-row:hover{background:rgba(0,0,0,.03)}
+.list-row span{padding:12px 0;display:flex;align-items:center;font-size:12px}
+.list-row .l-idx{color:#c5c0b8;font-size:10px}
+.list-row .l-date{color:#888;font-size:10px;letter-spacing:.06em}
+.list-row .l-title{color:#1a1a1a;font-size:12px;cursor:pointer;transition:color .15s}
+.list-row:hover .l-title{color:#555}
+.list-status{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:9px;letter-spacing:.12em;color:#bbb}
+@media (max-width:600px){
+  .list-head,.list-row{grid-template-columns:32px 72px 1fr}
+  .list-row span{padding:10px 0;font-size:11px}
+}
+/* Article reader */
+.reader{position:fixed;inset:0;z-index:20;display:none;overflow-y:auto;-webkit-user-select:text;user-select:text;background:linear-gradient(180deg,#faf7f0 0%,#f5f0e6 100%)}
+.reader.show{display:block}
+.reader-paper{position:relative;max-width:700px;margin:0 auto;padding:60px 60px 140px;min-height:100vh}
+.reader-paper::before,.reader-paper::after{display:none}
+.reader .back{display:inline-block;font-family:'Courier New',monospace;font-size:13px;color:#999;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;margin-bottom:40px;-webkit-user-select:none;user-select:none}
+.reader .back:hover{color:#555}
+.reader h1{font-family:'Times New Roman',Times,serif;font-size:28px;font-weight:700;line-height:1.35;margin-bottom:8px;color:#111;letter-spacing:-.01em}
+.reader .meta{font-family:'Courier New',Courier,monospace;font-size:12px;color:#888;margin-bottom:36px;letter-spacing:.04em}
+.reader .body{font-family:'Times New Roman',Times,serif;font-size:18px;line-height:1.75;color:#1a1a1a}
+.reader .body p{margin-bottom:1.4em}
+.reader .body a{color:#111;text-decoration:underline;text-underline-offset:3px}
+.reader .body img{max-width:100%;height:auto;margin:1.5em 0}
+.reader .body h2,.reader .body h3{font-family:'Times New Roman',Times,serif;font-size:19px;font-weight:700;margin:2em 0 .8em;color:#111;letter-spacing:.02em}
+.reader .body blockquote{border-left:2px solid #ddd;margin:1.5em 0;padding-left:20px;color:#666;font-style:italic}
+@media (max-width:600px){
+  .reader-paper{padding:40px 24px 100px}
+  .reader-paper::before{display:none}
+  .reader-paper::after{display:none}
+  .reader h1{font-size:24px}
+  .reader .body{font-size:16px}
+}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<div class="grab-dot" id="dot"></div>
 <p class="hint">Grab and drag the receipt</p>
+
+<!-- Subscribe overlay -->
+<div class="overlay" id="subOverlay">
+  <div class="overlay-bg" onclick="closeSub()"></div>
+  <div class="sub-modal">
+    <button class="close" onclick="closeSub()">&times;</button>
+    <h2>JOIN THE LIST</h2>
+    <form id="subForm" onsubmit="return submitSub(event)">
+      <label>NAME</label>
+      <input type="text" id="subName" placeholder="optional">
+      <label>EMAIL</label>
+      <input type="email" id="subEmail" required placeholder="you@example.com">
+      <button type="submit" id="subBtn">SUBSCRIBE</button>
+    </form>
+    <div class="msg" id="subMsg"></div>
+  </div>
+</div>
+
+<!-- Article list -->
+<div class="list-view" id="listView">
+  <div class="list-inner">
+    <div class="list-topbar">
+      <h2>ALL ARTICLES</h2>
+      <button class="close-list" onclick="closeList()">&larr; BACK</button>
+    </div>
+    <div class="list-head">
+      <span>#</span>
+      <span>DATE</span>
+      <span>TITLE</span>
+    </div>
+    <div id="listRows"></div>
+    <div class="list-status">
+      <span id="listCount">ROWS 0</span>
+      <span>SORTED DATE DESC</span>
+    </div>
+  </div>
+</div>
+
+<!-- Article reader -->
+<div class="reader" id="reader">
+  <div class="reader-paper">
+    <button class="back" id="readerBack" onclick="closeReader()">&larr; BACK</button>
+    <h1 id="readerTitle"></h1>
+    <div class="meta" id="readerMeta"></div>
+    <div class="body" id="readerBody"></div>
+  </div>
+</div>
+
 <script>
 "use strict";
 
@@ -26,96 +133,253 @@ var COLS = 35, ROWS = 70;
 var CW = 3.0, CH = 6.0;
 var NX = COLS + 1, NY = ROWS + 1, NP = NX * NY;
 
-var GRAV    = 0.003;    // gravity per step (tuned constant)
-var DAMP    = 0.988;    // velocity damping
-var ITERS   = 15;       // constraint solver iterations
-var M_RAD   = 0.65;     // mouse grab radius (world units)
-var M_SPRING = 0.025;   // spring pull toward mouse
+var GRAV     = 0.0028;
+var DAMP     = 0.986;
+var ITERS    = 22;
+var GRAB_RAD = 0.9;
 
 /* ═══════════════════════════════════════════
    Receipt Texture (1024 × 2048)
    ═══════════════════════════════════════════ */
 
-function makeReceipt() {
-  var cv = document.createElement("canvas"), W = 1024, H = 2048;
-  cv.width = W; cv.height = H;
-  var x = cv.getContext("2d"), S = 2;
-
-  // Paper with subtle noise
-  x.fillStyle = "#f5f1ea";
-  x.fillRect(0, 0, W, H);
-  var id = x.getImageData(0, 0, W, H), d = id.data;
-  for (var p = 0; p < d.length; p += 4) {
-    var n = (Math.random() - .5) * 10;
-    d[p] += n; d[p+1] += n; d[p+2] += n;
+var TW = 1024, TH = 2048;
+var paperBg = document.createElement("canvas");
+paperBg.width = TW; paperBg.height = TH;
+(function() {
+  var x = paperBg.getContext("2d");
+  x.fillStyle = "#f6f2eb";
+  x.fillRect(0, 0, TW, TH);
+  var id = x.getImageData(0, 0, TW, TH), d = id.data;
+  for (var py = 0; py < TH; py++) {
+    var fb = (Math.sin(py * .3) * .5 + Math.sin(py * 1.7 + 3) * .3) * 2.5;
+    for (var px = 0; px < TW; px++) {
+      var p = (py * TW + px) * 4;
+      var n = (Math.random() - .5) * 12 + Math.sin(px * .02 + py * .01) * 3 + fb;
+      d[p] += n; d[p+1] += n - .5; d[p+2] += n - 1.5;
+    }
   }
   x.putImageData(id, 0, 0);
-
-  // Bottom-edge fade
-  var g = x.createLinearGradient(0, 0, 0, H);
+  for (var r = 0; r < TH; r += 3) {
+    x.fillStyle = "rgba(0,0,0," + (0.008 + Math.random() * .012) + ")";
+    x.fillRect(0, r, TW, 1);
+  }
+  var g = x.createLinearGradient(0, 0, 0, TH);
   g.addColorStop(0, "rgba(245,241,234,0)");
-  g.addColorStop(.97, "rgba(245,241,234,0)");
-  g.addColorStop(1, "rgba(220,216,208,.6)");
-  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  g.addColorStop(.93, "rgba(245,241,234,0)");
+  g.addColorStop(1, "rgba(200,195,185,.45)");
+  x.fillStyle = g; x.fillRect(0, 0, TW, TH);
+  var g2 = x.createLinearGradient(0, 0, 0, 40);
+  g2.addColorStop(0, "rgba(180,175,165,.15)");
+  g2.addColorStop(1, "rgba(245,241,234,0)");
+  x.fillStyle = g2; x.fillRect(0, 0, TW, 40);
+  var gL = x.createLinearGradient(0, 0, 25, 0);
+  gL.addColorStop(0, "rgba(180,175,165,.1)");
+  gL.addColorStop(1, "rgba(245,241,234,0)");
+  x.fillStyle = gL; x.fillRect(0, 0, 25, TH);
+  var gR = x.createLinearGradient(TW, 0, TW - 25, 0);
+  gR.addColorStop(0, "rgba(180,175,165,.1)");
+  gR.addColorStop(1, "rgba(245,241,234,0)");
+  x.fillStyle = gR; x.fillRect(TW - 25, 0, 25, TH);
+})();
 
-  // Text helpers
+var articles = [];
+var tapZones = [];
+var readerCount = "92,563";
+
+function makeReceipt() {
+  var cv = document.createElement("canvas"), W = TW, H = TH, S = 2;
+  cv.width = W; cv.height = H;
+  var x = cv.getContext("2d");
+  tapZones = [];
+  x.drawImage(paperBg, 0, 0);
+
   x.textBaseline = "top"; x.fillStyle = "#1a1a1a";
-  var y = 96, lh = 60, mg = 100;
+  var y = 70, lh = 48, mg = 85;
 
-  function ctr(t, font, col) {
-    x.font = font || (16*S) + "px 'Courier New',monospace";
-    if (col) x.fillStyle = col;
-    x.textAlign = "center"; x.fillText(t, W/2, y);
+  function ctr(t, f, c) {
+    x.font = f || (15*S) + "px 'Courier New',monospace";
+    if (c) x.fillStyle = c; x.textAlign = "center"; x.fillText(t, W/2, y);
     x.fillStyle = "#1a1a1a"; y += lh;
   }
-  function lft(t) {
-    x.font = (16*S) + "px 'Courier New',monospace";
-    x.textAlign = "left"; x.fillText(t, mg, y); y += lh;
-  }
-  function lr(l, r) {
-    x.font = (16*S) + "px 'Courier New',monospace";
-    x.textAlign = "left";  x.fillText(l, mg, y);
-    x.textAlign = "right"; x.fillText(r, W - mg, y); y += lh;
+  function lft(t, c) {
+    x.font = (13*S) + "px 'Courier New',monospace";
+    if (c) x.fillStyle = c; x.textAlign = "left"; x.fillText(t, mg, y);
+    x.fillStyle = "#1a1a1a"; y += lh;
   }
   function dash() {
-    x.font = (14*S) + "px 'Courier New',monospace";
-    x.textAlign = "center"; x.fillStyle = "#999";
-    x.fillText("- - - - - - - - - - - - - -", W/2, y);
-    x.fillStyle = "#1a1a1a"; y += lh;
+    x.strokeStyle = "#bbb"; x.lineWidth = 1.5; x.setLineDash([6, 5]);
+    x.beginPath(); x.moveTo(mg, y + lh * 0.35); x.lineTo(W - mg, y + lh * 0.35); x.stroke();
+    x.setLineDash([]); y += lh * 0.85;
   }
   function thick() {
-    x.fillStyle = "#333";
-    x.fillRect(mg, y + 20, W - mg*2, 5);
+    x.fillStyle = "#2a2a2a"; x.fillRect(mg, y + 14, W - mg * 2, 4);
     x.fillStyle = "#1a1a1a"; y += lh;
   }
 
-  ctr("WHOISWRITING", "bold " + (30*S) + "px 'Courier New',monospace");
-  y += 4; thick();
-  ctr("Cole Ryan", (17*S) + "px 'Courier New',monospace");
-  ctr("Newsletter & Essays", (14*S) + "px 'Courier New',monospace", "#666");
-  ctr("whoiswriting.com", (14*S) + "px 'Courier New',monospace", "#777");
-  y += 28;
-  lft("Date: 2026-03-27  09:00");
-  lft("Reader: #04,271");
-  y += 12; dash(); y += 12;
-  lr("Business Strategy", "\u2713");
-  lr("Life Lessons", "\u2713");
-  lr("Philosophy", "\u2713");
-  lr("Entrepreneurship", "\u2713");
-  lr("Weekly Delivery", "\u2713");
-  y += 12; dash(); y += 12;
-  lr("Frequency", "Weekly");
-  lr("Read Time", "~5 min");
-  y += 12; thick(); y += 12;
-  x.font = "bold " + (22*S) + "px 'Courier New',monospace";
-  x.textAlign = "left";  x.fillText("SUBSCRIPTION", mg, y);
-  x.textAlign = "right"; x.fillText("FREE", W - mg, y);
-  y += lh + 20; dash(); y += 36;
-  ctr("Thank you for reading!", (15*S) + "px 'Courier New',monospace", "#555");
+  // Header
+  ctr("Essays & Writing", (14*S) + "px 'Courier New',monospace", "#666");
+  y += 6; thick();
+
+  // Live date
+  var now = new Date();
+  var pad = function(n) { return n < 10 ? "0" + n : "" + n; };
+  var ds = now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) +
+           "  " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+  ctr(ds, (14*S) + "px 'Courier New',monospace", "#555");
+  ctr("Reader #" + readerCount, (12*S) + "px 'Courier New',monospace", "#888");
+
+  y += 4; dash(); y += 4;
+
+  // Subscribe box — tap zone
+  var subTop = y / H;
+  ctr("JOIN THE LIST", "bold " + (12*S) + "px 'Courier New',monospace", "#555");
   y += 4;
-  ctr("@coleryan", (13*S) + "px 'Courier New',monospace", "#999");
+  x.font = (12*S) + "px 'Courier New',monospace"; x.fillStyle = "#999"; x.textAlign = "left";
+  x.fillText("Email", mg, y);
+  x.strokeStyle = "#c5c0b8"; x.lineWidth = 1.5; x.setLineDash([]);
+  x.beginPath(); x.moveTo(mg + 100, y + 26); x.lineTo(W - mg, y + 26); x.stroke();
+  y += lh + 4;
+  tapZones.push({ uvTop: subTop, uvBot: y / H, type: "subscribe", idx: -1 });
+
+  thick();
+
+  // Articles
+  if (articles.length > 0) {
+    ctr("ARTICLES", "bold " + (12*S) + "px 'Courier New',monospace", "#555");
+    dash();
+
+    for (var i = 0; i < articles.length; i++) {
+      if (y > H - 260) break;
+      var a = articles[i];
+      var num = (i + 1 < 10 ? "0" : "") + (i + 1);
+      var title = a.subject || "Untitled";
+      x.font = (13*S) + "px 'Courier New',monospace";
+      while (x.measureText(num + "  " + title).width > W - mg * 2 && title.length > 10) {
+        title = title.slice(0, -4) + "...";
+      }
+      var artTop = y / H;
+      lft(num + "  " + title);
+      if (a.published_at) {
+        var d = new Date(a.published_at);
+        lft("    " + d.toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"}), "#aaa");
+      }
+      tapZones.push({ uvTop: artTop, uvBot: y / H, type: "article", idx: i });
+      dash();
+    }
+  } else {
+    ctr("ARTICLES", "bold " + (12*S) + "px 'Courier New',monospace", "#555");
+    dash();
+    ctr("Coming soon...", (13*S) + "px 'Courier New',monospace", "#aaa");
+    dash();
+  }
+
+  // View All — always shown, large tap zone
+  thick();
+  var vaTop = (y - lh * 0.5) / H;
+  y += 24;
+  ctr("VIEW ALL \u2192", "bold " + (16*S) + "px 'Courier New',monospace", "#444");
+  y += 24;
+  tapZones.push({ uvTop: vaTop, uvBot: (y + lh) / H, type: "viewall", idx: -1 });
 
   return cv;
+}
+
+function fetchArticles() {
+  fetch("https://api.kit.com/v4/broadcasts", {
+    headers: { "X-Kit-Api-Key": "kit_e7c4221f7f3235265c45a327c301f926", "Content-Type": "application/json" }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    articles = (data.broadcasts || []).filter(function(b) { return b.public && b.published_at; })
+      .sort(function(a, b) { return new Date(b.published_at) - new Date(a.published_at); });
+    uploadTex();
+  }).catch(function() {});
+}
+
+function uploadTex() {
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, makeReceipt());
+  gl.generateMipmap(gl.TEXTURE_2D);
+}
+
+/* ═══════════════════════════════════════════
+   Subscribe / Reader
+   ═══════════════════════════════════════════ */
+
+function openSub() {
+  document.getElementById("subOverlay").classList.add("show");
+  document.getElementById("subMsg").textContent = "";
+  document.getElementById("subForm").style.display = "";
+}
+function closeSub() { document.getElementById("subOverlay").classList.remove("show"); }
+function submitSub(e) {
+  e.preventDefault();
+  var email = document.getElementById("subEmail").value;
+  var name = document.getElementById("subName").value;
+  var btn = document.getElementById("subBtn");
+  btn.textContent = "...";
+  var body = { email_address: email };
+  if (name) body.first_name = name;
+  fetch("https://api.kit.com/v4/subscribers", {
+    method: "POST",
+    headers: { "X-Kit-Api-Key": "kit_e7c4221f7f3235265c45a327c301f926", "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  }).then(function(r) {
+    if (r.ok || r.status === 200 || r.status === 201) {
+      document.getElementById("subForm").style.display = "none";
+      document.getElementById("subMsg").textContent = "\u2713 You\u2019re in. Welcome.";
+      document.getElementById("subMsg").style.color = "#2d7a4a";
+    } else {
+      document.getElementById("subMsg").textContent = "Something went wrong.";
+      document.getElementById("subMsg").style.color = "#c44";
+      btn.textContent = "SUBSCRIBE";
+    }
+  }).catch(function() {
+    document.getElementById("subMsg").textContent = "Network error.";
+    document.getElementById("subMsg").style.color = "#c44";
+    btn.textContent = "SUBSCRIBE";
+  });
+  return false;
+}
+
+var openedFromList = false;
+
+function openList() {
+  var rows = document.getElementById("listRows");
+  rows.innerHTML = "";
+  for (var i = 0; i < articles.length; i++) {
+    var a = articles[i];
+    var num = String(i + 1).padStart(2, "0");
+    var date = a.published_at ? new Date(a.published_at).toLocaleDateString("en-US", {year:"2-digit",month:"2-digit",day:"2-digit"}) : "";
+    var div = document.createElement("a");
+    div.className = "list-row";
+    div.href = "#";
+    div.setAttribute("data-idx", i);
+    div.onclick = function(e) { e.preventDefault(); openArticle(parseInt(this.getAttribute("data-idx")), true); };
+    div.innerHTML = '<span class="l-idx">' + num + '</span><span class="l-date">' + date + '</span><span class="l-title">' + (a.subject || "Untitled").replace(/</g,"&lt;") + '</span>';
+    rows.appendChild(div);
+  }
+  document.getElementById("listCount").textContent = "ROWS " + articles.length;
+  document.getElementById("listView").classList.add("show");
+}
+function closeList() { document.getElementById("listView").classList.remove("show"); }
+
+function openArticle(idx, fromList) {
+  openedFromList = !!fromList;
+  var a = articles[idx];
+  document.getElementById("readerTitle").textContent = a.subject || "Untitled";
+  var meta = "";
+  if (a.published_at) meta = new Date(a.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  document.getElementById("readerMeta").textContent = meta;
+  document.getElementById("readerBody").innerHTML = a.content || a.description || "<p>No content available.</p>";
+  document.getElementById("reader").classList.add("show");
+  document.getElementById("reader").scrollTop = 0;
+}
+function closeReader() {
+  document.getElementById("reader").classList.remove("show");
+  if (openedFromList) {
+    // List is already open underneath — just show it
+    document.getElementById("listView").classList.add("show");
+  }
+  openedFromList = false;
 }
 
 /* ═══════════════════════════════════════════
@@ -133,8 +397,9 @@ for (var j = 0; j < NY; j++) {
     var idx = j * NX + i, i3 = idx * 3;
     var px = (i / COLS - 0.5) * CW;
     var py = -(j / ROWS) * CH;
-    pos[i3] = px; pos[i3+1] = py; pos[i3+2] = 0;
-    prv[i3] = px; prv[i3+1] = py; prv[i3+2] = 0;
+    var rz = (Math.random() - .5) * .015;
+    pos[i3] = px; pos[i3+1] = py; pos[i3+2] = rz;
+    prv[i3] = px; prv[i3+1] = py; prv[i3+2] = rz;
     uvs[idx*2] = i / COLS;
     uvs[idx*2+1] = j / ROWS;
     if (j === 0) pin[idx] = 1;
@@ -142,7 +407,7 @@ for (var j = 0; j < NY; j++) {
 }
 
 /* ═══════════════════════════════════════════
-   Constraints: structural + shear + bending
+   Constraints
    ═══════════════════════════════════════════ */
 
 var _cA = [], _cB = [], _cR = [];
@@ -157,20 +422,36 @@ function addC(a, b) {
 for (var j = 0; j < NY; j++) {
   for (var i = 0; i < NX; i++) {
     var idx = j * NX + i;
-    // structural
     if (i < COLS)              addC(idx, idx + 1);
     if (j < ROWS)              addC(idx, idx + NX);
-    // shear
     if (i < COLS && j < ROWS)  addC(idx, idx + NX + 1);
-    if (i > 0   && j < ROWS)   addC(idx, idx + NX - 1);
-    // bending (skip-one — resists folding, makes it feel like paper)
-    if (i + 2 <= COLS)          addC(idx, idx + 2);
-    if (j + 2 <= ROWS)          addC(idx, idx + 2 * NX);
+    if (i > 0   && j < ROWS)  addC(idx, idx + NX - 1);
+    if (i + 2 <= COLS)         addC(idx, idx + 2);
+    if (j + 2 <= ROWS)         addC(idx, idx + 2 * NX);
+    if (i + 3 <= COLS)         addC(idx, idx + 3);
+    if (j + 3 <= ROWS)         addC(idx, idx + 3 * NX);
   }
+}
+for (var i = 0; i < NX; i++) {
+  var bIdx = ROWS * NX + i;
+  if (i + 2 <= COLS) addC(bIdx, bIdx + 2);
+  if (i + 3 <= COLS) addC(bIdx, bIdx + 3);
+}
+for (var j = 0; j < NY; j++) {
+  var lIdx = j * NX;
+  if (j + 2 <= ROWS) addC(lIdx, lIdx + 2 * NX);
+  if (j + 3 <= ROWS) addC(lIdx, lIdx + 3 * NX);
+  var rIdx = j * NX + COLS;
+  if (j + 2 <= ROWS) addC(rIdx, rIdx + 2 * NX);
+  if (j + 3 <= ROWS) addC(rIdx, rIdx + 3 * NX);
 }
 
 var NC = _cA.length;
 var cA = new Int32Array(_cA), cB = new Int32Array(_cB), cR = new Float32Array(_cR);
+
+var isEdge = new Uint8Array(NP);
+for (var i = 0; i < NX; i++) { isEdge[i] = 1; isEdge[ROWS * NX + i] = 1; }
+for (var j = 0; j < NY; j++) { isEdge[j * NX] = 1; isEdge[j * NX + COLS] = 1; }
 
 /* ═══════════════════════════════════════════
    Triangle Indices
@@ -191,13 +472,10 @@ var NI = ti;
    ═══════════════════════════════════════════ */
 
 function m4() { var m = new Float32Array(16); m[0]=m[5]=m[10]=m[15]=1; return m; }
-
 function persp(o, fov, a, n, f) {
-  var t = 1/Math.tan(fov*.5), nf = 1/(n-f);
-  o.fill(0);
+  var t = 1/Math.tan(fov*.5), nf = 1/(n-f); o.fill(0);
   o[0] = t/a; o[5] = t; o[10] = (f+n)*nf; o[11] = -1; o[14] = 2*f*n*nf;
 }
-
 function lookAt(o, e, c, u) {
   var fx=c[0]-e[0], fy=c[1]-e[1], fz=c[2]-e[2];
   var l=Math.sqrt(fx*fx+fy*fy+fz*fz); fx/=l; fy/=l; fz/=l;
@@ -209,7 +487,6 @@ function lookAt(o, e, c, u) {
   o[2]=-fx; o[6]=-fy; o[10]=-fz; o[14]=fx*e[0]+fy*e[1]+fz*e[2];
   o[3]=0;   o[7]=0;   o[11]=0;  o[15]=1;
 }
-
 function mul(o, a, b) {
   for (var c = 0; c < 4; c++) {
     var b0=b[c*4], b1=b[c*4+1], b2=b[c*4+2], b3=b[c*4+3];
@@ -219,7 +496,6 @@ function mul(o, a, b) {
     o[c*4+3] = a[3]*b0 + a[7]*b1 + a[11]*b2 + a[15]*b3;
   }
 }
-
 function inv(o, m) {
   var a=m[0],b=m[1],c=m[2],d=m[3], e=m[4],f=m[5],g=m[6],h=m[7],
       i=m[8],j=m[9],k=m[10],l=m[11], M=m[12],n=m[13],p=m[14],q=m[15];
@@ -242,62 +518,67 @@ function inv(o, m) {
    WebGL
    ═══════════════════════════════════════════ */
 
-var canvas = document.getElementById("c");
+var canvas = document.getElementById("c"), dot = document.getElementById("dot");
 var cssW = window.innerWidth, cssH = window.innerHeight;
-var dpr = window.devicePixelRatio || 1;
-canvas.width  = Math.round(cssW * dpr);
+var dpr = Math.min(window.devicePixelRatio || 1, 2);
+canvas.width = Math.round(cssW * dpr);
 canvas.height = Math.round(cssH * dpr);
 
-var gl = canvas.getContext("webgl", {
-  antialias: true, alpha: true, premultipliedAlpha: false
-});
+var gl = canvas.getContext("webgl", { antialias: true, alpha: false, powerPreference: "high-performance" });
 gl.viewport(0, 0, canvas.width, canvas.height);
 gl.enable(gl.DEPTH_TEST);
-gl.disable(gl.CULL_FACE);
-gl.clearColor(0, 0, 0, 0);
-
-/* ── Shaders ── */
+gl.clearColor(0.914, 0.906, 0.894, 1.0);
 
 var VS = [
   "attribute vec3 aP, aN;",
   "attribute vec2 aU;",
   "uniform mat4 uVP;",
-  "varying vec3 vN;",
+  "varying vec3 vN, vW;",
   "varying vec2 vU;",
   "void main() {",
-  "  vN = aN;",
-  "  vU = aU;",
+  "  vN = aN; vU = aU; vW = aP;",
   "  gl_Position = uVP * vec4(aP, 1.0);",
   "}"
 ].join("\n");
 
 var FS = [
   "precision highp float;",
-  "varying vec3 vN;",
+  "varying vec3 vN, vW;",
   "varying vec2 vU;",
   "uniform sampler2D uT;",
+  "uniform vec3 uEye;",
   "void main() {",
   "  vec3 n = normalize(gl_FrontFacing ? vN : -vN);",
-  "  vec3 L1 = normalize(vec3(0.4, 0.8, 1.0));",
-  "  vec3 L2 = normalize(vec3(-0.5, 0.3, 0.6));",
+  "  vec3 L1 = normalize(vec3(0.45, 0.85, 1.0));",
+  "  vec3 L2 = normalize(vec3(-0.65, 0.25, 0.45));",
+  "  vec3 L3 = normalize(vec3(0.1, -0.4, -0.85));",
   "  float d1 = max(dot(n, L1), 0.0);",
   "  float d2 = max(dot(n, L2), 0.0);",
+  "  float d3 = max(dot(n, L3), 0.0);",
   "  float hemi = dot(n, vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5;",
-  "  float amb = mix(0.50, 0.62, hemi);",
+  "  float amb = mix(0.44, 0.60, hemi);",
+  "  vec3 V = normalize(uEye - vW);",
+  "  vec3 H1 = normalize(L1 + V);",
+  "  float spec = pow(max(dot(n, H1), 0.0), 50.0) * 0.14;",
+  "  float flatF = abs(dot(n, vec3(0.0, 0.0, 1.0)));",
+  "  float foldAO = mix(0.85, 1.0, flatF);",
+  "  float sss = pow(max(dot(V, -L1), 0.0), 4.0) * 0.07;",
+  "  float fres = pow(1.0 - max(dot(V, n), 0.0), 3.5) * 0.07;",
   "  vec4 tx = texture2D(uT, vU);",
-  "  vec3 col = tx.rgb * (amb + d1 * 0.38 + d2 * 0.12);",
-  "  if (!gl_FrontFacing) col *= 0.80;",
+  "  vec3 col = tx.rgb * (amb + d1 * 0.42 + d2 * 0.10 + d3 * 0.05) * foldAO;",
+  "  col += vec3(spec) + vec3(sss) * tx.rgb + vec3(fres) * vec3(0.96, 0.94, 0.91);",
+  "  if (!gl_FrontFacing) col *= vec3(0.76, 0.75, 0.74);",
+  "  float vig = smoothstep(0.0, 0.06, vU.x) * smoothstep(1.0, 0.94, vU.x)",
+  "            * smoothstep(0.0, 0.03, vU.y) * smoothstep(1.0, 0.97, vU.y);",
+  "  col *= mix(0.88, 1.0, vig);",
   "  gl_FragColor = vec4(col, 1.0);",
   "}"
 ].join("\n");
 
 function mkS(type, src) {
   var s = gl.createShader(type);
-  gl.shaderSource(s, src); gl.compileShader(s);
-  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
-  return s;
+  gl.shaderSource(s, src); gl.compileShader(s); return s;
 }
-
 var prog = gl.createProgram();
 gl.attachShader(prog, mkS(gl.VERTEX_SHADER, VS));
 gl.attachShader(prog, mkS(gl.FRAGMENT_SHADER, FS));
@@ -308,23 +589,17 @@ var aN = gl.getAttribLocation(prog, "aN");
 var aU = gl.getAttribLocation(prog, "aU");
 var uVP = gl.getUniformLocation(prog, "uVP");
 var uT  = gl.getUniformLocation(prog, "uT");
+var uEye = gl.getUniformLocation(prog, "uEye");
 gl.enableVertexAttribArray(aP);
 gl.enableVertexAttribArray(aN);
 gl.enableVertexAttribArray(aU);
 
-/* ── Buffers ── */
-
-var posBuf = gl.createBuffer();
-var nrmBuf = gl.createBuffer();
-var uvBuf  = gl.createBuffer();
-var idxBuf = gl.createBuffer();
-
+var posBuf = gl.createBuffer(), nrmBuf = gl.createBuffer();
+var uvBuf = gl.createBuffer(), idxBuf = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
 gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tri, gl.STATIC_DRAW);
-
-/* ── Texture ── */
 
 var tex = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -337,14 +612,12 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 var aniso = gl.getExtension("EXT_texture_filter_anisotropic") ||
             gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
 if (aniso) {
-  var maxAniso = gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-  gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(maxAniso, 8));
+  gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT,
+    Math.min(gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT), 16));
 }
 gl.activeTexture(gl.TEXTURE0);
 gl.bindTexture(gl.TEXTURE_2D, tex);
 gl.uniform1i(uT, 0);
-
-/* ── Camera ── */
 
 var eye = [0, -3, 8], center = [0, -3, 0];
 var vMat = m4(), pMat = m4(), vpMat = m4(), ivp = m4();
@@ -353,6 +626,7 @@ persp(pMat, Math.PI * 0.28, cssW / cssH, 0.1, 100);
 mul(vpMat, pMat, vMat);
 inv(ivp, vpMat);
 gl.uniformMatrix4fv(uVP, false, vpMat);
+gl.uniform3f(uEye, eye[0], eye[1], eye[2]);
 
 /* ═══════════════════════════════════════════
    Mouse Unprojection
@@ -365,7 +639,6 @@ function projPt(wx, wy, wz) {
   var w = vpMat[3]*wx + vpMat[7]*wy + vpMat[11]*wz + vpMat[15];
   return [(x/w+1)*0.5*cssW, (1-y/w)*0.5*cssH, (z/w+1)*0.5];
 }
-
 function unprojPt(sx, sy, sz) {
   var nx = sx/cssW*2-1, ny = 1-sy/cssH*2, nz = sz*2-1;
   var x = ivp[0]*nx + ivp[4]*ny + ivp[8]*nz  + ivp[12];
@@ -374,99 +647,104 @@ function unprojPt(sx, sy, sz) {
   var w = ivp[3]*nx + ivp[7]*ny + ivp[11]*nz + ivp[15];
   return [x/w, y/w, z/w];
 }
-
 var baseProj = projPt(0, -3, 0);
 var dragZ = baseProj[2];
 
 /* ═══════════════════════════════════════════
-   Pointer Events
+   Pointer Events + Tap Detection
    ═══════════════════════════════════════════ */
 
 var mouseDown = false;
-var mwx = 0, mwy = 0;
-var pmwx = 0, pmwy = 0;
-var mwValid = false;
+var mwx = 0, mwy = 0, pmwx = 0, pmwy = 0, mwValid = false, grabIndex = -1;
+var grabOffX = new Float32Array(NP), grabOffY = new Float32Array(NP), grabDist = new Float32Array(NP);
+var grabAnchorX = 0, grabAnchorY = 0;
+var downX = 0, downY = 0;
+
+function handleTap(cx, cy) {
+  var best = -1, bd = 70;
+  for (var i = 0; i < NP; i++) {
+    var sp = projPt(pos[i*3], pos[i*3+1], pos[i*3+2]);
+    var d = Math.sqrt((sp[0]-cx)*(sp[0]-cx) + (sp[1]-cy)*(sp[1]-cy));
+    if (d < bd) { bd = d; best = i; }
+  }
+  if (best < 0) return;
+  var uvY = uvs[best*2+1];
+  for (var i = 0; i < tapZones.length; i++) {
+    var z = tapZones[i];
+    if (uvY >= z.uvTop && uvY <= z.uvBot) {
+      if (z.type === "subscribe") openSub();
+      else if (z.type === "viewall") openList();
+      else if (z.type === "article" && articles[z.idx]) openArticle(z.idx);
+      return;
+    }
+  }
+}
 
 canvas.addEventListener("pointerdown", function(e) {
+  downX = e.clientX; downY = e.clientY;
   mouseDown = true;
   canvas.classList.add("grabbing");
   canvas.setPointerCapture(e.pointerId);
 
-  // Find nearest particle for accurate z-depth
-  var best = -1, bd = 80;
+  var best = -1, bd = 70;
   for (var i = 0; i < NP; i++) {
     if (pin[i]) continue;
     var sp = projPt(pos[i*3], pos[i*3+1], pos[i*3+2]);
     var d = Math.sqrt((sp[0]-e.clientX)*(sp[0]-e.clientX) + (sp[1]-e.clientY)*(sp[1]-e.clientY));
     if (d < bd) { bd = d; best = i; }
   }
+  grabIndex = best;
   if (best >= 0) {
     var sp = projPt(pos[best*3], pos[best*3+1], pos[best*3+2]);
     dragZ = sp[2];
   }
 
   var wp = unprojPt(e.clientX, e.clientY, dragZ);
-  mwx = wp[0]; mwy = wp[1];
-  pmwx = mwx;  pmwy = mwy;
+  mwx = wp[0]; mwy = wp[1]; pmwx = mwx; pmwy = mwy;
+  grabAnchorX = mwx; grabAnchorY = mwy;
   mwValid = true;
+
+  for (var i = 0; i < NP; i++) {
+    grabOffX[i] = pos[i*3] - mwx;
+    grabOffY[i] = pos[i*3+1] - mwy;
+    grabDist[i] = Math.sqrt(grabOffX[i]*grabOffX[i] + grabOffY[i]*grabOffY[i]);
+  }
+
+  dot.style.display = "block";
+  dot.style.left = e.clientX + "px";
+  dot.style.top = e.clientY + "px";
 });
 
 canvas.addEventListener("pointermove", function(e) {
   if (!mouseDown) return;
   var wp = unprojPt(e.clientX, e.clientY, dragZ);
   mwx = wp[0]; mwy = wp[1];
+  dot.style.left = e.clientX + "px";
+  dot.style.top = e.clientY + "px";
 });
 
-function release() {
-  mouseDown = false;
-  mwValid = false;
+function release(e) {
+  if (e && mouseDown) {
+    var dx = e.clientX - downX, dy = e.clientY - downY;
+    if (Math.sqrt(dx*dx + dy*dy) < 8) handleTap(e.clientX, e.clientY);
+  }
+  mouseDown = false; mwValid = false; grabIndex = -1;
   canvas.classList.remove("grabbing");
+  dot.style.display = "none";
 }
 canvas.addEventListener("pointerup", release);
 canvas.addEventListener("pointercancel", release);
 
 /* ═══════════════════════════════════════════
-   Physics Simulation
+   Physics
    ═══════════════════════════════════════════ */
 
+var simTime = 0;
+
 function simulate() {
+  simTime += 0.016;
+  var t = simTime;
 
-  /* ── Mouse velocity injection ── */
-  var mdx = 0, mdy = 0;
-  if (mouseDown && mwValid) {
-    mdx = mwx - pmwx;
-    mdy = mwy - pmwy;
-    var mdLen = Math.sqrt(mdx*mdx + mdy*mdy);
-    if (mdLen > 0.4) { var sc = 0.4/mdLen; mdx *= sc; mdy *= sc; }
-  }
-
-  if (mouseDown) {
-    for (var i = 0; i < NP; i++) {
-      if (pin[i]) continue;
-      var ix = i*3, iy = ix+1;
-      var dx = pos[ix] - mwx, dy = pos[iy] - mwy;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist >= M_RAD) continue;
-
-      var inf = 1 - dist / M_RAD;
-      inf *= inf; // quadratic falloff
-
-      // Blend velocity toward mouse delta
-      var vx = pos[ix] - prv[ix];
-      var vy = pos[iy] - prv[iy];
-      vx = mdx * inf + vx * (1 - inf);
-      vy = mdy * inf + vy * (1 - inf);
-
-      // Soft spring toward mouse position
-      vx += (mwx - pos[ix]) * M_SPRING * inf;
-      vy += (mwy - pos[iy]) * M_SPRING * inf;
-
-      prv[ix] = pos[ix] - vx;
-      prv[iy] = pos[iy] - vy;
-    }
-  }
-
-  /* ── Verlet integration ── */
   for (var i = 0; i < NP; i++) {
     if (pin[i]) continue;
     var ix = i*3, iy = ix+1, iz = ix+2;
@@ -474,31 +752,74 @@ function simulate() {
     var vx = (pos[ix] - prv[ix]) * DAMP;
     var vy = (pos[iy] - prv[iy]) * DAMP;
     var vz = (pos[iz] - prv[iz]) * DAMP;
-
     prv[ix] = pos[ix]; prv[iy] = pos[iy]; prv[iz] = pos[iz];
 
-    // Reduce gravity near mouse for natural lift feel
-    var grav = GRAV;
-    if (mouseDown) {
-      var dx = pos[ix] - mwx, dy = pos[iy] - mwy;
-      var dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < M_RAD) {
-        var inf = 1 - dist/M_RAD; inf *= inf;
-        grav *= (1 - inf * 0.9);
-      }
-    }
+    var row = ((i / NX) | 0) / (NY - 1);
+    var col = ((i % NX)) / (NX - 1);
+    var ws = 0.15 + row * 0.85;
 
-    pos[ix] += vx;
-    pos[iy] += vy - grav;
-    pos[iz] += vz;
+    var wx = Math.sin(t * 0.4) * 0.0008 * ws;
+    wx += Math.sin(t * 0.9 + 1.2) * 0.0005 * ws;
+    wx += Math.sin(t * 1.7 + col * 2.0) * 0.00035 * ws;
+    wx += Math.cos(t * 2.4 + row * 3.0) * 0.00025 * ws;
+    wx += Math.sin(t * 4.1 + col * 4.0 + row * 2.0) * 0.00012 * ws;
+
+    var wz = Math.sin(t * 0.35 + 0.7) * 0.0014 * ws;
+    wz += Math.cos(t * 0.75 + 1.5) * 0.0008 * ws;
+    wz += Math.sin(t * 1.3 + col * 2.5) * 0.0005 * ws;
+    wz += Math.cos(t * 1.8 + row * 2.0 - col * 1.5) * 0.0004 * ws;
+    wz += Math.sin(t * 1.6 - row * 7.0) * 0.001 * row;
+    wz += Math.sin(t * 0.9 + col * 4.0 - row * 5.0) * 0.0006 * row;
+    wz += Math.cos(t * 1.2 - col * 3.0 - row * 3.5 + 2.0) * 0.0004 * row;
+    wz += Math.sin(t * 3.5 + col * 6.0 + row * 4.0) * 0.00015 * ws;
+    wz += Math.cos(t * 4.8 - col * 5.0 + row * 7.0) * 0.0001 * ws;
+
+    wx += Math.cos(t * 0.85 - row * 4.5 + 1.5) * 0.0004 * row;
+    wx += Math.sin(t * 1.5 + col * 3.0 - row * 2.0) * 0.00015 * ws;
+
+    vz *= 0.982;
+    pos[ix] += vx + wx;
+    pos[iy] += vy - GRAV;
+    pos[iz] += vz + wz;
+    pos[iz] *= 0.9985;
   }
 
-  /* ── Constraint solving (alternating direction) ── */
+  if (mouseDown && grabIndex >= 0) {
+    var dragDx = mwx - grabAnchorX;
+    var dragDy = mwy - grabAnchorY;
+    for (var i = 0; i < NP; i++) {
+      if (pin[i]) continue;
+      var ix = i*3, iy = ix+1, iz = ix+2;
+      var gd = grabDist[i];
+      var inf;
+      if (gd < 0.05) inf = 1.0;
+      else if (gd < GRAB_RAD) {
+        var tt = gd / GRAB_RAD;
+        inf = 1.0 - tt * tt * (3.0 - 2.0 * tt); inf *= inf;
+      } else if (gd < GRAB_RAD * 2.5) {
+        var tt = (gd - GRAB_RAD) / (GRAB_RAD * 1.5);
+        inf = (1.0 - tt) * (1.0 - tt) * 0.15;
+      } else continue;
+
+      var targetX = grabAnchorX + grabOffX[i] + dragDx * inf;
+      var targetY = grabAnchorY + grabOffY[i] + dragDy * inf;
+      var elasticity = 0.35 * inf + 0.05;
+      pos[ix] += (targetX - pos[ix]) * elasticity;
+      pos[iy] += (targetY - pos[iy]) * elasticity;
+      if (gd < GRAB_RAD * 0.5) { prv[ix] = pos[ix]; prv[iy] = pos[iy]; }
+      if (gd < GRAB_RAD * 2.0) {
+        var zInf = gd < GRAB_RAD ? (1.0 - gd / GRAB_RAD) : (1.0 - (gd - GRAB_RAD) / GRAB_RAD) * 0.3;
+        zInf = Math.max(0, zInf);
+        pos[iz] *= (1.0 - zInf * 0.15);
+        prv[iz] += (pos[iz] - prv[iz]) * zInf * 0.6;
+      }
+    }
+  }
+
   for (var it = 0; it < ITERS; it++) {
     var start, end, step;
     if (it & 1) { start = NC-1; end = -1; step = -1; }
     else        { start = 0;    end = NC;  step = 1;  }
-
     for (var c = start; c !== end; c += step) {
       var a = cA[c], b = cB[c], rest = cR[c];
       var ax = a*3, bx = b*3;
@@ -506,14 +827,20 @@ function simulate() {
       var dSq = dx*dx + dy*dy + dz*dz;
       if (dSq < 1e-14) continue;
       var d = Math.sqrt(dSq);
-      var f = (d - rest) / d * 0.5;
+      var ratio = d / rest;
+      var stiff;
+      if (ratio > 1.8) stiff = 0.85;
+      else if (ratio > 1.4) stiff = 0.7;
+      else if (ratio > 1.15) stiff = 0.55;
+      else stiff = 0.48;
+      if (isEdge[a] || isEdge[b]) stiff = Math.min(stiff + 0.1, 0.9);
+      var f = (d - rest) / d * stiff;
       dx *= f; dy *= f; dz *= f;
-
       var fa = pin[a], fb = pin[b];
       if (fa && fb) continue;
       if (!fa && !fb) {
-        pos[ax]   += dx; pos[ax+1] += dy; pos[ax+2] += dz;
-        pos[bx]   -= dx; pos[bx+1] -= dy; pos[bx+2] -= dz;
+        pos[ax] += dx; pos[ax+1] += dy; pos[ax+2] += dz;
+        pos[bx] -= dx; pos[bx+1] -= dy; pos[bx+2] -= dz;
       } else if (fa) {
         pos[bx] -= dx*2; pos[bx+1] -= dy*2; pos[bx+2] -= dz*2;
       } else {
@@ -521,12 +848,11 @@ function simulate() {
       }
     }
   }
-
   pmwx = mwx; pmwy = mwy;
 }
 
 /* ═══════════════════════════════════════════
-   Normals (area-weighted, smooth)
+   Normals
    ═══════════════════════════════════════════ */
 
 function calcNormals() {
@@ -535,9 +861,7 @@ function calcNormals() {
     var i0 = tri[t], i1 = tri[t+1], i2 = tri[t+2];
     var e1x = pos[i1*3]-pos[i0*3],   e1y = pos[i1*3+1]-pos[i0*3+1], e1z = pos[i1*3+2]-pos[i0*3+2];
     var e2x = pos[i2*3]-pos[i0*3],   e2y = pos[i2*3+1]-pos[i0*3+1], e2z = pos[i2*3+2]-pos[i0*3+2];
-    var nx = e1y*e2z - e1z*e2y;
-    var ny = e1z*e2x - e1x*e2z;
-    var nz = e1x*e2y - e1y*e2x;
+    var nx = e1y*e2z - e1z*e2y, ny = e1z*e2x - e1x*e2z, nz = e1x*e2y - e1y*e2x;
     nrm[i0*3]+=nx; nrm[i0*3+1]+=ny; nrm[i0*3+2]+=nz;
     nrm[i1*3]+=nx; nrm[i1*3+1]+=ny; nrm[i1*3+2]+=nz;
     nrm[i2*3]+=nx; nrm[i2*3+1]+=ny; nrm[i2*3+2]+=nz;
@@ -550,40 +874,43 @@ function calcNormals() {
 }
 
 /* ═══════════════════════════════════════════
-   Render Loop
+   Render — two-pass
    ═══════════════════════════════════════════ */
 
 function frame() {
   simulate();
   calcNormals();
-
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
   gl.bufferData(gl.ARRAY_BUFFER, pos, gl.DYNAMIC_DRAW);
   gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, nrmBuf);
   gl.bufferData(gl.ARRAY_BUFFER, nrm, gl.DYNAMIC_DRAW);
   gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 0, 0);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
   gl.vertexAttribPointer(aU, 2, gl.FLOAT, false, 0, 0);
-
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+
+  gl.enable(gl.CULL_FACE);
+  gl.cullFace(gl.FRONT);
+  gl.enable(gl.POLYGON_OFFSET_FILL);
+  gl.polygonOffset(1, 1);
   gl.drawElements(gl.TRIANGLES, NI, gl.UNSIGNED_SHORT, 0);
+  gl.disable(gl.POLYGON_OFFSET_FILL);
+
+  gl.cullFace(gl.BACK);
+  gl.drawElements(gl.TRIANGLES, NI, gl.UNSIGNED_SHORT, 0);
+  gl.disable(gl.CULL_FACE);
 
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-/* ═══════════════════════════════════════════
-   Resize
-   ═══════════════════════════════════════════ */
-
 window.addEventListener("resize", function() {
   cssW = window.innerWidth; cssH = window.innerHeight;
-  canvas.width  = Math.round(cssW * dpr);
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
   gl.viewport(0, 0, canvas.width, canvas.height);
   persp(pMat, Math.PI * 0.28, cssW / cssH, 0.1, 100);
@@ -593,6 +920,19 @@ window.addEventListener("resize", function() {
   baseProj = projPt(0, -3, 0);
   dragZ = baseProj[2];
 });
+
+fetchArticles();
+
+// Cloudflare Worker counter — increment on each visit
+(function() {
+  var COUNTER_URL = "https://whoiswriting-counter.cole-e9d.workers.dev";
+  fetch(COUNTER_URL).then(function(r) { return r.json(); }).then(function(data) {
+    if (data && data.count) {
+      readerCount = data.count.toLocaleString("en-US");
+      uploadTex();
+    }
+  }).catch(function() {});
+})();
 
 </script>
 </body>

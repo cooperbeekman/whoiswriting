@@ -621,7 +621,7 @@ gl.uniform1i(uT, 0);
 
 // Shift receipt up on mobile (portrait)
 var isMobile = cssW < 600;
-var camY = isMobile ? -4.0 : -3;
+var camY = isMobile ? -3.4 : -3;
 var eye = [0, camY, 8], center = [0, camY, 0];
 var vMat = m4(), pMat = m4(), vpMat = m4(), ivp = m4();
 lookAt(vMat, eye, center, [0, 1, 0]);

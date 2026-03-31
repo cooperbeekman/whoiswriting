@@ -619,7 +619,10 @@ gl.activeTexture(gl.TEXTURE0);
 gl.bindTexture(gl.TEXTURE_2D, tex);
 gl.uniform1i(uT, 0);
 
-var eye = [0, -3, 8], center = [0, -3, 0];
+// Shift receipt up on mobile (portrait)
+var isMobile = cssW < 600;
+var camY = isMobile ? -2.2 : -3;
+var eye = [0, camY, 8], center = [0, camY, 0];
 var vMat = m4(), pMat = m4(), vpMat = m4(), ivp = m4();
 lookAt(vMat, eye, center, [0, 1, 0]);
 persp(pMat, Math.PI * 0.28, cssW / cssH, 0.1, 100);
@@ -661,7 +664,8 @@ var grabAnchorX = 0, grabAnchorY = 0;
 var downX = 0, downY = 0;
 
 function handleTap(cx, cy) {
-  var best = -1, bd = 70;
+  var searchRad = isMobile ? 120 : 70;
+  var best = -1, bd = searchRad;
   for (var i = 0; i < NP; i++) {
     var sp = projPt(pos[i*3], pos[i*3+1], pos[i*3+2]);
     var d = Math.sqrt((sp[0]-cx)*(sp[0]-cx) + (sp[1]-cy)*(sp[1]-cy));
@@ -669,9 +673,11 @@ function handleTap(cx, cy) {
   }
   if (best < 0) return;
   var uvY = uvs[best*2+1];
+  // On mobile, expand tap zone matching by a margin
+  var margin = isMobile ? 0.02 : 0;
   for (var i = 0; i < tapZones.length; i++) {
     var z = tapZones[i];
-    if (uvY >= z.uvTop && uvY <= z.uvBot) {
+    if (uvY >= z.uvTop - margin && uvY <= z.uvBot + margin) {
       if (z.type === "subscribe") openSub();
       else if (z.type === "viewall") openList();
       else if (z.type === "article" && articles[z.idx]) openArticle(z.idx);
@@ -726,7 +732,8 @@ canvas.addEventListener("pointermove", function(e) {
 function release(e) {
   if (e && mouseDown) {
     var dx = e.clientX - downX, dy = e.clientY - downY;
-    if (Math.sqrt(dx*dx + dy*dy) < 8) handleTap(e.clientX, e.clientY);
+    var tapThresh = isMobile ? 20 : 8;
+    if (Math.sqrt(dx*dx + dy*dy) < tapThresh) handleTap(e.clientX, e.clientY);
   }
   mouseDown = false; mwValid = false; grabIndex = -1;
   canvas.classList.remove("grabbing");
@@ -913,11 +920,16 @@ window.addEventListener("resize", function() {
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
   gl.viewport(0, 0, canvas.width, canvas.height);
+  isMobile = cssW < 600;
+  camY = isMobile ? -2.2 : -3;
+  eye[1] = camY; center[1] = camY;
+  lookAt(vMat, eye, center, [0, 1, 0]);
   persp(pMat, Math.PI * 0.28, cssW / cssH, 0.1, 100);
   mul(vpMat, pMat, vMat);
   inv(ivp, vpMat);
   gl.uniformMatrix4fv(uVP, false, vpMat);
-  baseProj = projPt(0, -3, 0);
+  gl.uniform3f(uEye, eye[0], eye[1], eye[2]);
+  baseProj = projPt(0, camY, 0);
   dragZ = baseProj[2];
 });
 

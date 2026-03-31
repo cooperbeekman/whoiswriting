@@ -53,14 +53,15 @@ canvas#c.grabbing{cursor:grabbing}
 .reader-paper::before,.reader-paper::after{display:none}
 .reader .back{display:inline-block;font-family:'Courier New',monospace;font-size:13px;color:#999;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;margin-bottom:40px;-webkit-user-select:none;user-select:none}
 .reader .back:hover{color:#555}
-.reader h1{font-family:'Times New Roman',Times,serif;font-size:28px;font-weight:700;line-height:1.35;margin-bottom:8px;color:#111;letter-spacing:-.01em}
-.reader .meta{font-family:'Courier New',Courier,monospace;font-size:12px;color:#888;margin-bottom:36px;letter-spacing:.04em}
-.reader .body{font-family:'Times New Roman',Times,serif;font-size:18px;line-height:1.75;color:#1a1a1a}
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+.reader h1{font-family:'EB Garamond',Garamond,'Times New Roman',serif;font-size:32px;font-weight:700;line-height:1.3;margin-bottom:10px;color:#111}
+.reader .meta{font-family:'EB Garamond',serif;font-size:14px;color:#888;margin-bottom:36px;font-style:italic}
+.reader .body{font-family:'EB Garamond',Garamond,'Times New Roman',serif;font-size:19px;line-height:1.8;color:#1a1a1a}
 .reader .body p{margin-bottom:1.4em}
 .reader .body a{color:#111;text-decoration:underline;text-underline-offset:3px}
 .reader .body img{max-width:100%;height:auto;margin:1.5em 0}
-.reader .body h2,.reader .body h3{font-family:'Times New Roman',Times,serif;font-size:19px;font-weight:700;margin:2em 0 .8em;color:#111;letter-spacing:.02em}
-.reader .body blockquote{border-left:2px solid #ddd;margin:1.5em 0;padding-left:20px;color:#666;font-style:italic}
+.reader .body h2,.reader .body h3{font-family:'EB Garamond',Garamond,serif;font-size:22px;font-weight:600;margin:2em 0 .8em;color:#111}
+.reader .body blockquote{border-left:2px solid #ddd;margin:1.5em 0;padding-left:20px;color:#555;font-style:italic}
 @media (max-width:600px){
   .reader-paper{padding:40px 24px 100px}
   .reader-paper::before{display:none}
@@ -358,7 +359,11 @@ function openList() {
     rows.appendChild(div);
   }
   document.getElementById("listCount").textContent = "ROWS " + articles.length;
-  document.getElementById("listView").classList.add("show");
+  var lv = document.getElementById("listView");
+  lv.style.pointerEvents = "none";
+  lv.classList.add("show");
+  lv.scrollTop = 0;
+  setTimeout(function() { lv.style.pointerEvents = ""; }, 300);
 }
 function closeList() { document.getElementById("listView").classList.remove("show"); }
 

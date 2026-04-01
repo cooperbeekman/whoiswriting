@@ -142,12 +142,11 @@ canvas#c.grabbing{cursor:grabbing}
     <div class="body" id="readerBody"></div>
     <div class="reader-sub">
       <div class="reader-sub-line"></div>
-      <p class="reader-sub-label">Enjoyed this? Get new essays delivered to you.</p>
+      <p class="reader-sub-label">Subscribe for more</p>
       <form id="readerSubForm" onsubmit="return submitReaderSub(event)">
-        <div class="reader-sub-fields">
-          <input type="email" id="readerSubEmail" required placeholder="your email" class="reader-sub-input">
-          <button type="submit" id="readerSubBtn" class="reader-sub-btn">SUBSCRIBE</button>
-        </div>
+        <label style="font-family:'Courier New',monospace;font-size:11px;color:#999;letter-spacing:.08em;display:block;margin-bottom:4px">EMAIL</label>
+        <input type="email" id="readerSubEmail" required placeholder="" class="reader-sub-input" style="display:block;width:100%;max-width:420px;margin:0 auto 16px;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;background:transparent">
+        <button type="submit" id="readerSubBtn" class="reader-sub-btn" style="display:block;margin:0 auto">SUBSCRIBE</button>
       </form>
       <div class="reader-sub-msg" id="readerSubMsg"></div>
     </div>

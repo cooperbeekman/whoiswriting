@@ -74,14 +74,14 @@ canvas#c.grabbing{cursor:grabbing}
 .reader .body blockquote{border-left:2px solid #ddd;margin:1.5em 0;padding-left:20px;color:#555;font-style:italic}
 .reader-sub{margin-top:60px;padding-top:40px}
 .reader-sub-line{height:1px;background:#ddd8d0;margin-bottom:32px}
-.reader-sub-label{font-family:'EB Garamond',Garamond,serif;font-size:18px;color:#555;margin-bottom:20px;text-align:center}
-.reader-sub-fields{display:flex;gap:10px;max-width:420px;margin:0 auto}
-.reader-sub-input{flex:1;background:transparent;border:1.5px solid #c5c0b8;padding:10px 14px;font-family:'Courier New',monospace;font-size:13px;color:#1a1a1a;outline:none;-webkit-user-select:text;user-select:text}
-.reader-sub-input:focus{border-color:#1a1a1a}
-.reader-sub-input::placeholder{color:#bbb}
-.reader-sub-btn{background:#1a1a1a;color:#f5f1ea;border:none;padding:10px 24px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;cursor:pointer}
+.reader-sub-label{font-family:'Courier New',Courier,monospace;font-size:15px;color:#555;margin-bottom:24px;text-align:center;letter-spacing:.02em}
+.reader-sub-field{max-width:420px;margin:0 auto 16px}
+.reader-sub-field label{font-family:'Courier New',Courier,monospace;font-size:11px;color:#999;letter-spacing:.08em;display:block;margin-bottom:4px}
+.reader-sub-field input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:'Courier New',Courier,monospace;font-size:14px;color:#1a1a1a;outline:none;-webkit-user-select:text;user-select:text}
+.reader-sub-field input:focus{border-bottom-color:#1a1a1a}
+.reader-sub-btn{display:block;margin:20px auto 0;background:#1a1a1a;color:#f5f1ea;border:none;padding:12px 32px;font-family:'Courier New',Courier,monospace;font-size:12px;letter-spacing:.1em;cursor:pointer}
 .reader-sub-btn:hover{background:#333}
-.reader-sub-msg{text-align:center;font-family:'Courier New',monospace;font-size:13px;margin-top:14px}
+.reader-sub-msg{text-align:center;font-family:'Courier New',Courier,monospace;font-size:13px;margin-top:14px}
 @media (max-width:600px){
   .reader-paper{padding:40px 24px 100px}
   .reader-paper::before{display:none}
@@ -144,9 +144,15 @@ canvas#c.grabbing{cursor:grabbing}
       <div class="reader-sub-line"></div>
       <p class="reader-sub-label">Subscribe for more</p>
       <form id="readerSubForm" onsubmit="return submitReaderSub(event)">
-        <label style="font-family:'Courier New',monospace;font-size:11px;color:#999;letter-spacing:.08em;display:block;margin-bottom:4px">EMAIL</label>
-        <input type="email" id="readerSubEmail" required placeholder="" class="reader-sub-input" style="display:block;width:100%;max-width:420px;margin:0 auto 16px;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;background:transparent">
-        <button type="submit" id="readerSubBtn" class="reader-sub-btn" style="display:block;margin:0 auto">SUBSCRIBE</button>
+        <div class="reader-sub-field">
+          <label>NAME</label>
+          <input type="text" id="readerSubName">
+        </div>
+        <div class="reader-sub-field">
+          <label>EMAIL</label>
+          <input type="email" id="readerSubEmail" required>
+        </div>
+        <button type="submit" id="readerSubBtn" class="reader-sub-btn">SUBSCRIBE</button>
       </form>
       <div class="reader-sub-msg" id="readerSubMsg"></div>
     </div>
@@ -380,13 +386,16 @@ function submitSub(e) {
 function submitReaderSub(e) {
   e.preventDefault();
   var email = document.getElementById("readerSubEmail").value;
+  var name = document.getElementById("readerSubName").value;
   var btn = document.getElementById("readerSubBtn");
   var msg = document.getElementById("readerSubMsg");
   btn.textContent = "...";
+  var body = { email_address: email };
+  if (name) body.first_name = name;
   fetch("https://api.kit.com/v4/subscribers", {
     method: "POST",
     headers: { "X-Kit-Api-Key": "kit_e7c4221f7f3235265c45a327c301f926", "Content-Type": "application/json" },
-    body: JSON.stringify({ email_address: email })
+    body: JSON.stringify(body)
   }).then(function(r) {
     if (r.ok || r.status === 200 || r.status === 201) {
       document.getElementById("readerSubForm").style.display = "none";
@@ -442,6 +451,7 @@ function openArticle(idx, fromList) {
   document.getElementById("readerSubForm").style.display = "";
   document.getElementById("readerSubMsg").textContent = "";
   document.getElementById("readerSubEmail").value = "";
+  document.getElementById("readerSubName").value = "";
   document.getElementById("readerSubBtn").textContent = "SUBSCRIBE";
   document.getElementById("reader").classList.add("show");
   document.getElementById("reader").scrollTop = 0;

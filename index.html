@@ -72,6 +72,16 @@ canvas#c.grabbing{cursor:grabbing}
 .reader .body img{max-width:100%;height:auto;margin:1.5em 0}
 .reader .body h2,.reader .body h3{font-family:'EB Garamond',Garamond,serif;font-size:22px;font-weight:600;margin:2em 0 .8em;color:#111}
 .reader .body blockquote{border-left:2px solid #ddd;margin:1.5em 0;padding-left:20px;color:#555;font-style:italic}
+.reader-sub{margin-top:60px;padding-top:40px}
+.reader-sub-line{height:1px;background:#ddd8d0;margin-bottom:32px}
+.reader-sub-label{font-family:'EB Garamond',Garamond,serif;font-size:18px;color:#555;margin-bottom:20px;text-align:center}
+.reader-sub-fields{display:flex;gap:10px;max-width:420px;margin:0 auto}
+.reader-sub-input{flex:1;background:transparent;border:1.5px solid #c5c0b8;padding:10px 14px;font-family:'Courier New',monospace;font-size:13px;color:#1a1a1a;outline:none;-webkit-user-select:text;user-select:text}
+.reader-sub-input:focus{border-color:#1a1a1a}
+.reader-sub-input::placeholder{color:#bbb}
+.reader-sub-btn{background:#1a1a1a;color:#f5f1ea;border:none;padding:10px 24px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;cursor:pointer}
+.reader-sub-btn:hover{background:#333}
+.reader-sub-msg{text-align:center;font-family:'Courier New',monospace;font-size:13px;margin-top:14px}
 @media (max-width:600px){
   .reader-paper{padding:40px 24px 100px}
   .reader-paper::before{display:none}
@@ -130,6 +140,17 @@ canvas#c.grabbing{cursor:grabbing}
     <h1 id="readerTitle"></h1>
     <div class="meta" id="readerMeta"></div>
     <div class="body" id="readerBody"></div>
+    <div class="reader-sub">
+      <div class="reader-sub-line"></div>
+      <p class="reader-sub-label">Enjoyed this? Get new essays delivered to you.</p>
+      <form id="readerSubForm" onsubmit="return submitReaderSub(event)">
+        <div class="reader-sub-fields">
+          <input type="email" id="readerSubEmail" required placeholder="your email" class="reader-sub-input">
+          <button type="submit" id="readerSubBtn" class="reader-sub-btn">SUBSCRIBE</button>
+        </div>
+      </form>
+      <div class="reader-sub-msg" id="readerSubMsg"></div>
+    </div>
   </div>
 </div>
 
@@ -357,6 +378,34 @@ function submitSub(e) {
   return false;
 }
 
+function submitReaderSub(e) {
+  e.preventDefault();
+  var email = document.getElementById("readerSubEmail").value;
+  var btn = document.getElementById("readerSubBtn");
+  var msg = document.getElementById("readerSubMsg");
+  btn.textContent = "...";
+  fetch("https://api.kit.com/v4/subscribers", {
+    method: "POST",
+    headers: { "X-Kit-Api-Key": "kit_e7c4221f7f3235265c45a327c301f926", "Content-Type": "application/json" },
+    body: JSON.stringify({ email_address: email })
+  }).then(function(r) {
+    if (r.ok || r.status === 200 || r.status === 201) {
+      document.getElementById("readerSubForm").style.display = "none";
+      msg.textContent = "\u2713 You\u2019re in. Welcome.";
+      msg.style.color = "#2d7a4a";
+    } else {
+      msg.textContent = "Something went wrong.";
+      msg.style.color = "#c44";
+      btn.textContent = "SUBSCRIBE";
+    }
+  }).catch(function() {
+    msg.textContent = "Network error.";
+    msg.style.color = "#c44";
+    btn.textContent = "SUBSCRIBE";
+  });
+  return false;
+}
+
 var openedFromList = false;
 
 function openList() {
@@ -391,6 +440,10 @@ function openArticle(idx, fromList) {
   if (a.published_at) meta = new Date(a.published_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   document.getElementById("readerMeta").textContent = meta;
   document.getElementById("readerBody").innerHTML = a.content || a.description || "<p>No content available.</p>";
+  document.getElementById("readerSubForm").style.display = "";
+  document.getElementById("readerSubMsg").textContent = "";
+  document.getElementById("readerSubEmail").value = "";
+  document.getElementById("readerSubBtn").textContent = "SUBSCRIBE";
   document.getElementById("reader").classList.add("show");
   document.getElementById("reader").scrollTop = 0;
 }

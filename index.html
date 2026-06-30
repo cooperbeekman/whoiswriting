@@ -384,7 +384,7 @@ setInterval(function() {
 
 // Per-frame: sweep a light highlight across the coupon via shader uniforms.
 function updateShine(now) {
-  var CYCLE = 7000, DUR = 1900; // 1.9s sweep, repeats every 7s
+  var CYCLE = 8500, DUR = 2800; // slow 2.8s glow drift, repeats every 8.5s
   gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
   var ph = now % CYCLE;
   if (ph < DUR) {
@@ -751,11 +751,14 @@ var FS = [
   "  col *= mix(0.88, 1.0, vig);",
   // Procedural light sweep across the subscribe coupon (no texture re-upload)
   "  if (uShineA > 0.0 && vU.x > uCoupon.x && vU.x < uCoupon.z && vU.y > uCoupon.y && vU.y < uCoupon.w) {",
-  "    float sx = uShineX + (vU.y - uCoupon.y) * 0.12;", // slight diagonal slant
-  "    float d = abs(vU.x - sx);",
-  "    float glow = smoothstep(0.13, 0.0, d) * 0.16;",
-  "    float glint = smoothstep(0.012, 0.0, d) * 0.33;",
-  "    col += (glow + glint) * uShineA;",
+  "    float ry = (vU.y - uCoupon.y) / (uCoupon.w - uCoupon.y);",        // 0..1 down the coupon
+  "    float wob = sin(ry * 6.2832 + uShineX * 16.0) * 0.022",           // undulating, organic edge
+  "             + sin(ry * 15.0 - uShineX * 6.0) * 0.011;",
+  "    float d = vU.x - (uShineX + wob);",
+  "    float band = exp(-d * d / (2.0 * 0.095 * 0.095));",               // gaussian — no hard edge at all
+  "    float vfall = smoothstep(0.0, 0.32, ry) * smoothstep(1.0, 0.68, ry);", // light pools toward the middle
+  "    float sheen = band * mix(0.45, 1.0, vfall);",
+  "    col += sheen * 0.15 * uShineA * vec3(1.0, 0.96, 0.89);",          // warm, gentle, no glint line
   "  }",
   "  gl_FragColor = vec4(col, 1.0);",
   "}"

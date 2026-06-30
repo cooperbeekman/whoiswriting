@@ -139,7 +139,7 @@ function pageHtml(a, slug) {
     (a.preview_text && a.preview_text.trim()) ||
       (a.description && a.description.trim()) ||
       stripTags(a.content).slice(0, 155) ||
-      "Essays & Writing by Cole Ryan."
+      "Receipts by Cole."
   );
   const image = a.thumbnail_url || `${SITE}/og.png`;
   const dateHuman = fmtDate(a.published_at);
@@ -160,7 +160,7 @@ function pageHtml(a, slug) {
     description:
       (a.preview_text && a.preview_text.trim()) ||
       stripTags(a.content).slice(0, 200) ||
-      "Essays & Writing by Cole Ryan.",
+      "Receipts by Cole.",
   });
 
   return `<!DOCTYPE html>

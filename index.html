@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#dbd8d3">
 <title>whoiswriting — Cole Ryan</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
@@ -19,7 +20,8 @@
 <meta name="twitter:image" content="https://coleryan.co/og.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:radial-gradient(ellipse at 50% 38%,#eceae7,#d9d6d1);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+html{background:#d9d6d1}
+body{background:radial-gradient(ellipse at 50% 38%,#eceae7,#d9d6d1);background-color:#d9d6d1;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;min-height:100dvh}
 canvas#c{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab}
 canvas#c.grabbing{cursor:grabbing}
 .hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#555150;font-size:13px;letter-spacing:.06em;font-weight:400;pointer-events:none;z-index:1}
@@ -290,10 +292,9 @@ function makeReceipt() {
   // ── Subscribe coupon ──────────────────────────────
   var cpL = mg - 6, cpR = W - mg + 6;
   var cpTop = y;
-  y += 20;
+  y += 22;
   ctr("✦  JOIN THE LIST  ✦", "bold " + (13.5*S) + "px 'Courier New',monospace", "#2e2a25");
-  ctr("free essays — straight to your inbox", (10.5*S) + "px 'Courier New',monospace", "#6b6660");
-  y -= 6;
+  y += 4;
   x.font = (14*S) + "px 'Courier New',monospace"; x.fillStyle = "#5a554f"; x.textAlign = "left";
   x.fillText("Email", cpL + 30, y);
   x.strokeStyle = "#9a948a"; x.lineWidth = 1.5; x.setLineDash([]);
@@ -384,14 +385,15 @@ setInterval(function() {
 
 // Per-frame: sweep a light highlight across the coupon via shader uniforms.
 function updateShine(now) {
-  var CYCLE = 8000, DUR = 2200; // 2.2s glow wipe, repeats every 8s
+  var CYCLE = 8500, DUR = 2600; // 2.6s glow wipe, repeats every 8.5s
   gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
   var ph = now % CYCLE;
   if (ph < DUR) {
     var u = ph / DUR;
+    var ease = u * u * (3.0 - 2.0 * u);           // smoothstep — glide in and out, no constant-speed feel
     var x0 = couponUV[0], x1 = couponUV[2], m = (x1 - x0) * 0.3;
-    gl.uniform1f(uShineX, x0 - m + u * ((x1 - x0) + 2 * m));
-    gl.uniform1f(uShineA, Math.sin(u * Math.PI)); // fade in at the start, out at the end
+    gl.uniform1f(uShineX, x0 - m + ease * ((x1 - x0) + 2 * m));
+    gl.uniform1f(uShineA, Math.sin(u * Math.PI)); // soft symmetric fade in/out
   } else {
     gl.uniform1f(uShineA, 0.0);
   }
@@ -752,8 +754,8 @@ var FS = [
   // Procedural light sweep across the subscribe coupon (no texture re-upload)
   "  if (uShineA > 0.0 && vU.x > uCoupon.x && vU.x < uCoupon.z && vU.y > uCoupon.y && vU.y < uCoupon.w) {",
   "    float ry = (vU.y - uCoupon.y) / (uCoupon.w - uCoupon.y);",        // 0..1 down the coupon
-  "    float wob = sin(ry * 6.2832 + uShineX * 14.0) * 0.026",           // undulating, organic front
-  "             + sin(ry * 13.0 - uShineX * 5.0) * 0.013;",
+  "    float wob = sin(ry * 6.2832 + uShineX * 12.0) * 0.026",           // undulating, organic front
+  "             + sin(ry * 9.0 - uShineX * 4.0) * 0.012;",
   "    float d = vU.x - (uShineX + wob);",
   "    float body  = exp(-d * d / (2.0 * 0.125 * 0.125));",              // broad warm glow (no hard edge)
   "    float crest = exp(-d * d / (2.0 * 0.038 * 0.038));",              // soft bright heart (not a hairline)

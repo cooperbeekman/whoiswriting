@@ -1312,6 +1312,10 @@ function frame() {
 
   // Torn-out coupon card — its own rigid mesh, drawn on top.
   if (cpVis) {
+    // Wipe the receipt's depth so the falling card always renders in front of the page —
+    // its pitch/rock/ripple would otherwise dip parts behind the receipt's depth and flicker.
+    // (Depth test stays on, so the card's own folds still self-occlude correctly.)
+    gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, cpPosBuf); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, cpNrmBuf); gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, cpUvBuf);  gl.vertexAttribPointer(aU, 2, gl.FLOAT, false, 0, 0);

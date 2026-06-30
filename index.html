@@ -398,7 +398,7 @@ setInterval(function() {
 // Per-frame: sweep a light highlight across the coupon via shader uniforms.
 function updateShine(now) {
   if (torn) { gl.uniform1f(uShineA, 0.0); return; } // coupon gone — nothing to light up
-  var CYCLE = 9500, DUR = 2900; // 2.9s glow wipe, repeats every 9.5s (extra ~1s pause between sweeps)
+  var CYCLE = 10500, DUR = 2900; // 2.9s glow wipe, repeats every 10.5s (another ~1s pause between sweeps)
   gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
   var ph = now % CYCLE;
   if (ph < DUR) {
@@ -1175,21 +1175,28 @@ function updateTear(now) {
   var t = now - cpT0, k;
 
   if (t < PEEL_MS) {
-    // ── Rip: a gentle bend front sweeps left → right, lifting the card off the page.
+    // ── Rip: a smooth bend front sweeps left → right, lifting the card off the page (the
+    //    clean version), plus a touch of slow, gentle life in the freed flap so it isn't
+    //    dead-stiff — low and smooth, not ripples.
+    var ts = t / 1000;
     var peel = t / PEEL_MS, ep = peel * peel * (3 - 2 * peel);
     var fx = (cpMinX - 0.06) + ep * ((cpMaxX - cpMinX) + 0.18);
     var R = 1.5, PHI_MAX = 1.9, slope = 0.25;            // gentle bend (a card, not a tight roll); top leads → corner pull
     for (k = 0; k < cpN; k++) {
       var rx = cpRest[k*3], ry = cpRest[k*3+1], rz = cpRest[k*3+2];
       var fxv = fx + (ry - cpMidY) * slope;
-      var s = fxv - rx, X, Z;
+      var s = fxv - rx, X, Y = ry, Z;
       if (s <= 0) { X = rx; Z = rz; }                    // ahead of the front: still flat
       else {
         var phi = s / R;                                 // behind: curled up off the page
         if (phi <= PHI_MAX) { X = fxv - R*Math.sin(phi); Z = rz + R*(1 - Math.cos(phi)); }
         else { var extra = s - R*PHI_MAX; X = fxv - R*Math.sin(PHI_MAX) - Math.cos(PHI_MAX)*extra; Z = rz + R*(1 - Math.cos(PHI_MAX)) + Math.sin(PHI_MAX)*extra; }
+        // slight, slow flex — eases in away from the tear front so the rip itself stays crisp
+        var freed = Math.min(s / 0.7, 1); freed = freed*freed*(3 - 2*freed);
+        Z += 0.04 * Math.sin(s*1.5 + ts*2.0) * freed;    // one gentle bow that drifts (texture)
+        Y += 0.018 * Math.sin(ry*2.0 - ts*1.5) * freed;  // barely-there sway (movement)
       }
-      cpPos[k*3] = X; cpPos[k*3+1] = ry; cpPos[k*3+2] = Z;
+      cpPos[k*3] = X; cpPos[k*3+1] = Y; cpPos[k*3+2] = Z;
     }
   } else {
     // ── Drop: the freed card floats down to the bottom like a dropped sheet of paper.

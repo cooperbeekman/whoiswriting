@@ -384,7 +384,7 @@ setInterval(function() {
 
 // Per-frame: sweep a light highlight across the coupon via shader uniforms.
 function updateShine(now) {
-  var CYCLE = 8500, DUR = 2800; // slow 2.8s glow drift, repeats every 8.5s
+  var CYCLE = 8000, DUR = 2200; // 2.2s glow wipe, repeats every 8s
   gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
   var ph = now % CYCLE;
   if (ph < DUR) {
@@ -752,13 +752,14 @@ var FS = [
   // Procedural light sweep across the subscribe coupon (no texture re-upload)
   "  if (uShineA > 0.0 && vU.x > uCoupon.x && vU.x < uCoupon.z && vU.y > uCoupon.y && vU.y < uCoupon.w) {",
   "    float ry = (vU.y - uCoupon.y) / (uCoupon.w - uCoupon.y);",        // 0..1 down the coupon
-  "    float wob = sin(ry * 6.2832 + uShineX * 16.0) * 0.022",           // undulating, organic edge
-  "             + sin(ry * 15.0 - uShineX * 6.0) * 0.011;",
+  "    float wob = sin(ry * 6.2832 + uShineX * 14.0) * 0.026",           // undulating, organic front
+  "             + sin(ry * 13.0 - uShineX * 5.0) * 0.013;",
   "    float d = vU.x - (uShineX + wob);",
-  "    float band = exp(-d * d / (2.0 * 0.095 * 0.095));",               // gaussian — no hard edge at all
-  "    float vfall = smoothstep(0.0, 0.32, ry) * smoothstep(1.0, 0.68, ry);", // light pools toward the middle
-  "    float sheen = band * mix(0.45, 1.0, vfall);",
-  "    col += sheen * 0.15 * uShineA * vec3(1.0, 0.96, 0.89);",          // warm, gentle, no glint line
+  "    float body  = exp(-d * d / (2.0 * 0.125 * 0.125));",              // broad warm glow (no hard edge)
+  "    float crest = exp(-d * d / (2.0 * 0.038 * 0.038));",              // soft bright heart (not a hairline)
+  "    float vfall = smoothstep(0.0, 0.16, ry) * smoothstep(1.0, 0.84, ry);", // fills most of the height
+  "    float sheen = (body * 0.6 + crest * 0.5) * mix(0.82, 1.0, vfall);",
+  "    col += sheen * 0.32 * uShineA * vec3(1.0, 0.95, 0.86);",          // warm, luminous wipe
   "  }",
   "  gl_FragColor = vec4(col, 1.0);",
   "}"

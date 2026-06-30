@@ -28,10 +28,10 @@ html{-webkit-text-size-adjust:100%}
 body{background:linear-gradient(180deg,#faf7f0 0%,#f5f0e6 100%);min-height:100vh;font-family:'Courier New',Courier,monospace;color:#1a1a1a;-webkit-font-smoothing:antialiased}
 .paper{max-width:700px;margin:0 auto;padding:60px 60px 140px;min-height:100vh}
 .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
-.nav a,.nav button{font-family:'Courier New',monospace;font-size:13px;color:#999;letter-spacing:.06em;text-decoration:none;cursor:pointer;border:none;background:none;padding:0}
+.nav a,.nav button{font-family:'Courier New',monospace;font-size:13px;color:#6b6660;letter-spacing:.06em;text-decoration:none;cursor:pointer;border:none;background:none;padding:0}
 .nav a:hover,.nav button:hover{color:#555}
 h1{font-size:24px;font-weight:700;line-height:1.35;margin-bottom:10px;color:#0a0a0a}
-.meta{font-size:12px;color:#777;margin-bottom:36px;letter-spacing:.04em}
+.meta{font-size:12px;color:#6b6660;margin-bottom:36px;letter-spacing:.04em}
 .body{font-size:15px;line-height:1.85;color:#1a1a1a;letter-spacing:-.03em;font-weight:500;-webkit-text-stroke:.2px #1a1a1a}
 .body p{margin-bottom:1.4em}
 .body a{color:#111;text-decoration:underline;text-underline-offset:3px}
@@ -43,7 +43,7 @@ h1{font-size:24px;font-weight:700;line-height:1.35;margin-bottom:10px;color:#0a0
 .sub-line{height:1px;background:#ddd8d0;margin-bottom:32px}
 .sub-label{font-size:15px;color:#555;margin-bottom:24px;text-align:center;letter-spacing:.02em}
 .sub-field{max-width:420px;margin:0 auto 16px}
-.sub-field label{font-size:11px;color:#999;letter-spacing:.08em;display:block;margin-bottom:4px}
+.sub-field label{font-size:11px;color:#6b6660;letter-spacing:.08em;display:block;margin-bottom:4px}
 .sub-field input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:'Courier New',monospace;font-size:14px;color:#1a1a1a;outline:none}
 .sub-field input:focus{border-bottom-color:#1a1a1a}
 .sub-btn{display:block;margin:20px auto 0;background:#1a1a1a;color:#f5f1ea;border:none;padding:12px 32px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;cursor:pointer}
@@ -101,8 +101,8 @@ function submitSub(e){
     if(r.ok||r.status===200||r.status===201){
       document.getElementById("subForm").style.display="none";
       msg.textContent="\u2713 You\u2019re in. Welcome.";msg.style.color="#2d7a4a";
-    }else{msg.textContent="Something went wrong.";msg.style.color="#c44";btn.textContent="SUBSCRIBE";}
-  }).catch(function(){msg.textContent="Network error.";msg.style.color="#c44";btn.textContent="SUBSCRIBE";});
+    }else{msg.textContent="Something went wrong.";msg.style.color="#c0392b";btn.textContent="SUBSCRIBE";}
+  }).catch(function(){msg.textContent="Network error.";msg.style.color="#c0392b";btn.textContent="SUBSCRIBE";});
   return false;
 }
 </script>

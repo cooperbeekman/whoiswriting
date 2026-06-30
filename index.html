@@ -22,7 +22,7 @@
 body{background:radial-gradient(ellipse at 50% 38%,#eceae7,#d9d6d1);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
 canvas#c{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab}
 canvas#c.grabbing{cursor:grabbing}
-.hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#a8a29e;font-size:13px;letter-spacing:.06em;font-weight:300;pointer-events:none;z-index:1;opacity:.8}
+.hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#555150;font-size:13px;letter-spacing:.06em;font-weight:400;pointer-events:none;z-index:1}
 .grab-dot{position:fixed;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);border:2px solid rgba(0,0,0,.12);pointer-events:none;transform:translate(-50%,-50%);z-index:2;display:none;box-shadow:0 0 16px rgba(0,0,0,.05)}
 /* Subscribe overlay */
 .overlay{position:fixed;inset:0;z-index:10;display:none;opacity:0;transition:opacity .3s ease}
@@ -30,13 +30,13 @@ canvas#c.grabbing{cursor:grabbing}
 .overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .sub-modal{position:relative;margin:auto;background:#f6f2eb;padding:48px 40px;max-width:380px;width:90%;font-family:'Courier New',monospace;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .sub-modal h2{font-size:18px;letter-spacing:.12em;text-align:center;margin-bottom:28px;font-weight:700}
-.sub-modal label{display:block;font-size:11px;color:#999;letter-spacing:.08em;margin-bottom:4px}
+.sub-modal label{display:block;font-size:11px;color:#6b6660;letter-spacing:.08em;margin-bottom:4px}
 .sub-modal input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:inherit;font-size:15px;color:#1a1a1a;outline:none;margin-bottom:20px;-webkit-user-select:text;user-select:text}
 .sub-modal input:focus{border-bottom-color:#1a1a1a}
 .sub-modal button{display:block;width:100%;padding:12px;background:#1a1a1a;color:#f5f1ea;border:none;font-family:inherit;font-size:13px;letter-spacing:.12em;cursor:pointer}
 .sub-modal button:hover{background:#333}
 .sub-modal .msg{text-align:center;font-size:13px;margin-top:16px}
-.sub-modal .close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;padding:0;width:auto;letter-spacing:0}
+.sub-modal .close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;color:#6b6660;cursor:pointer;padding:0;width:auto;letter-spacing:0}
 .sub-modal .close:hover{color:#555}
 /* Article list — bloomberg terminal style */
 .list-view{position:fixed;inset:0;z-index:15;display:none;overflow-y:auto;-webkit-user-select:text;user-select:text;background:#f6f2eb;font-family:'Courier New',Courier,monospace;color:#1a1a1a}
@@ -44,17 +44,17 @@ canvas#c.grabbing{cursor:grabbing}
 .list-inner{max-width:800px;margin:0 auto;padding:32px 24px 120px}
 .list-topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid #2a2a2a;margin-bottom:0}
 .list-topbar h2{font-size:11px;letter-spacing:.18em;font-weight:700;color:#1a1a1a}
-.list-topbar .close-list{background:none;border:none;font-family:inherit;font-size:11px;letter-spacing:.1em;color:#999;cursor:pointer;padding:4px 0}
+.list-topbar .close-list{background:none;border:none;font-family:inherit;font-size:11px;letter-spacing:.1em;color:#6b6660;cursor:pointer;padding:4px 0}
 .list-topbar .close-list:hover{color:#1a1a1a}
-.list-head{display:grid;grid-template-columns:40px 90px 1fr;padding:10px 0 8px;border-bottom:1px solid #ddd8d0;font-size:9px;letter-spacing:.15em;color:#999;font-weight:600}
+.list-head{display:grid;grid-template-columns:40px 90px 1fr;padding:10px 0 8px;border-bottom:1px solid #ddd8d0;font-size:9px;letter-spacing:.15em;color:#6b6660;font-weight:600}
 .list-row{display:grid;grid-template-columns:40px 90px 1fr;padding:0;border-bottom:1px solid #eae6df;text-decoration:none;color:inherit;transition:background .1s}
 .list-row:hover{background:rgba(0,0,0,.03)}
 .list-row span{padding:12px 0;display:flex;align-items:center;font-size:12px}
-.list-row .l-idx{color:#c5c0b8;font-size:10px}
-.list-row .l-date{color:#888;font-size:10px;letter-spacing:.06em}
+.list-row .l-idx{color:#6b6660;font-size:10px}
+.list-row .l-date{color:#6b6660;font-size:10px;letter-spacing:.06em}
 .list-row .l-title{color:#1a1a1a;font-size:12px;cursor:pointer;transition:color .15s}
 .list-row:hover .l-title{color:#555}
-.list-status{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:9px;letter-spacing:.12em;color:#bbb}
+.list-status{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:9px;letter-spacing:.12em;color:#6b6660}
 @media (max-width:600px){
   .list-head,.list-row{grid-template-columns:32px 72px 1fr}
   .list-row span{padding:10px 0;font-size:11px}
@@ -64,14 +64,14 @@ canvas#c.grabbing{cursor:grabbing}
 .reader.show{display:block}
 .reader-paper{position:relative;max-width:700px;margin:0 auto;padding:60px 60px 140px;min-height:100vh}
 .reader-paper::before,.reader-paper::after{display:none}
-.reader .back{display:inline-block;font-family:'Courier New',monospace;font-size:13px;color:#999;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;margin-bottom:40px;-webkit-user-select:none;user-select:none}
+.reader .back{display:inline-block;font-family:'Courier New',monospace;font-size:13px;color:#6b6660;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;margin-bottom:40px;-webkit-user-select:none;user-select:none}
 .reader .back:hover{color:#555}
-.reader .share{float:right;font-family:'Courier New',monospace;font-size:13px;color:#999;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;-webkit-user-select:none;user-select:none}
+.reader .share{float:right;font-family:'Courier New',monospace;font-size:13px;color:#6b6660;letter-spacing:.06em;cursor:pointer;border:none;background:none;padding:0;-webkit-user-select:none;user-select:none}
 .reader .share:hover{color:#555}
 .reader .share.copied{color:#2d7a4a}
 /* Reader uses Courier New to match receipt */
 .reader h1{font-family:'Courier New',Courier,monospace;font-size:24px;font-weight:700;line-height:1.35;margin-bottom:10px;color:#0a0a0a}
-.reader .meta{font-family:'Courier New',Courier,monospace;font-size:12px;color:#777;margin-bottom:36px;letter-spacing:.04em}
+.reader .meta{font-family:'Courier New',Courier,monospace;font-size:12px;color:#6b6660;margin-bottom:36px;letter-spacing:.04em}
 .reader .body{font-family:'Courier New',Courier,monospace;font-size:15px;line-height:1.85;color:#1a1a1a;letter-spacing:-.03em;font-weight:500;-webkit-font-smoothing:antialiased;-webkit-text-stroke:0.2px #1a1a1a}
 .reader .body p{margin-bottom:1.4em}
 .reader .body a{color:#111;text-decoration:underline;text-underline-offset:3px}
@@ -82,7 +82,7 @@ canvas#c.grabbing{cursor:grabbing}
 .reader-sub-line{height:1px;background:#ddd8d0;margin-bottom:32px}
 .reader-sub-label{font-family:'Courier New',Courier,monospace;font-size:15px;color:#555;margin-bottom:24px;text-align:center;letter-spacing:.02em}
 .reader-sub-field{max-width:420px;margin:0 auto 16px}
-.reader-sub-field label{font-family:'Courier New',Courier,monospace;font-size:11px;color:#999;letter-spacing:.08em;display:block;margin-bottom:4px}
+.reader-sub-field label{font-family:'Courier New',Courier,monospace;font-size:11px;color:#6b6660;letter-spacing:.08em;display:block;margin-bottom:4px}
 .reader-sub-field input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:'Courier New',Courier,monospace;font-size:14px;color:#1a1a1a;outline:none;-webkit-user-select:text;user-select:text}
 .reader-sub-field input:focus{border-bottom-color:#1a1a1a}
 .reader-sub-btn{display:block;margin:20px auto 0;background:#1a1a1a;color:#f5f1ea;border:none;padding:12px 32px;font-family:'Courier New',Courier,monospace;font-size:12px;letter-spacing:.1em;cursor:pointer}
@@ -229,6 +229,19 @@ paperBg.width = TW; paperBg.height = TH;
 var articles = [];
 var tapZones = [];
 var readerCount = "92,563";
+// Subscribe-coupon rect in UV space [x0,y0,x1,y1], set by makeReceipt and read
+// by the render loop to drive the procedural shine sweep in the fragment shader.
+var couponUV = [0, 0, 0, 0];
+
+function roundRectPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
 
 function makeReceipt() {
   var cv = document.createElement("canvas"), W = TW, H = TH, S = 2;
@@ -270,21 +283,37 @@ function makeReceipt() {
   var ds = now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) +
            "  " + pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
   ctr(ds, (14*S) + "px 'Courier New',monospace", "#555");
-  ctr("Reader #" + readerCount, (12*S) + "px 'Courier New',monospace", "#888");
+  ctr("Reader #" + readerCount, (12*S) + "px 'Courier New',monospace", "#6b6660");
 
-  y += 4; dash(); y += 4;
+  y += 14;
 
-  // Subscribe box — tap zone
-  var subTop = y / H;
-  ctr("JOIN THE LIST", "bold " + (12*S) + "px 'Courier New',monospace", "#555");
-  y += 4;
-  x.font = (14*S) + "px 'Courier New',monospace"; x.fillStyle = "#666"; x.textAlign = "left";
-  x.fillText("Email", mg, y);
-  x.strokeStyle = "#c5c0b8"; x.lineWidth = 1.5; x.setLineDash([]);
-  x.beginPath(); x.moveTo(mg + 100, y + 26); x.lineTo(W - mg, y + 26); x.stroke();
-  y += lh + 4;
-  tapZones.push({ uvTop: subTop, uvBot: y / H, type: "subscribe", idx: -1 });
+  // ── Subscribe coupon ──────────────────────────────
+  var cpL = mg - 6, cpR = W - mg + 6;
+  var cpTop = y;
+  y += 20;
+  ctr("✦  JOIN THE LIST  ✦", "bold " + (13.5*S) + "px 'Courier New',monospace", "#2e2a25");
+  ctr("free essays — straight to your inbox", (10.5*S) + "px 'Courier New',monospace", "#6b6660");
+  y -= 6;
+  x.font = (14*S) + "px 'Courier New',monospace"; x.fillStyle = "#5a554f"; x.textAlign = "left";
+  x.fillText("Email", cpL + 30, y);
+  x.strokeStyle = "#9a948a"; x.lineWidth = 1.5; x.setLineDash([]);
+  x.beginPath(); x.moveTo(cpL + 30 + 92, y + 26); x.lineTo(cpR - 30, y + 26); x.stroke();
+  y += lh + 14;
+  var cpBot = y;
 
+  // Coupon border — dashed perforation, rounded corners
+  x.save();
+  x.strokeStyle = "#7d776c"; x.lineWidth = 2; x.lineCap = "round"; x.setLineDash([2, 7]);
+  roundRectPath(x, cpL, cpTop, cpR - cpL, cpBot - cpTop, 12);
+  x.stroke();
+  x.restore();
+
+  // Whole coupon is the subscribe tap zone
+  tapZones.push({ uvTop: cpTop / H, uvBot: cpBot / H, type: "subscribe", idx: -1 });
+  // Expose the coupon rect (UV) so the shader can sweep a light highlight over it
+  couponUV[0] = cpL / W; couponUV[1] = cpTop / H; couponUV[2] = cpR / W; couponUV[3] = cpBot / H;
+
+  y += lh * 0.5;
   thick();
 
   // Articles
@@ -305,7 +334,7 @@ function makeReceipt() {
       lft(num + "  " + title);
       if (a.published_at) {
         var d = new Date(a.published_at);
-        lft("    " + d.toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"}), "#aaa");
+        lft("    " + d.toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"}), "#6b6660");
       }
       tapZones.push({ uvTop: artTop, uvBot: y / H, type: "article", idx: i });
       dash();
@@ -313,7 +342,7 @@ function makeReceipt() {
   } else {
     ctr("ARTICLES", "bold " + (12*S) + "px 'Courier New',monospace", "#555");
     dash();
-    ctr("Coming soon...", (13*S) + "px 'Courier New',monospace", "#aaa");
+    ctr("Coming soon...", (13*S) + "px 'Courier New',monospace", "#6b6660");
     dash();
   }
 
@@ -344,11 +373,29 @@ function uploadTex() {
   gl.generateMipmap(gl.TEXTURE_2D);
 }
 
-// Live clock — update receipt texture every second
+// Live clock — refresh the receipt texture once a second (cheap; regenerates
+// mipmaps so the minified receipt stays crisp). The subscribe-coupon shine is
+// procedural in the fragment shader, so it costs no texture re-upload at all.
 setInterval(function() {
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, makeReceipt());
+  gl.generateMipmap(gl.TEXTURE_2D);
 }, 1000);
+
+// Per-frame: sweep a light highlight across the coupon via shader uniforms.
+function updateShine(now) {
+  var CYCLE = 7000, DUR = 1900; // 1.9s sweep, repeats every 7s
+  gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
+  var ph = now % CYCLE;
+  if (ph < DUR) {
+    var u = ph / DUR;
+    var x0 = couponUV[0], x1 = couponUV[2], m = (x1 - x0) * 0.3;
+    gl.uniform1f(uShineX, x0 - m + u * ((x1 - x0) + 2 * m));
+    gl.uniform1f(uShineA, Math.sin(u * Math.PI)); // fade in at the start, out at the end
+  } else {
+    gl.uniform1f(uShineA, 0.0);
+  }
+}
 
 /* ═══════════════════════════════════════════
    Subscribe / Reader
@@ -379,12 +426,12 @@ function submitSub(e) {
       document.getElementById("subMsg").style.color = "#2d7a4a";
     } else {
       document.getElementById("subMsg").textContent = "Something went wrong.";
-      document.getElementById("subMsg").style.color = "#c44";
+      document.getElementById("subMsg").style.color = "#c0392b";
       btn.textContent = "SUBSCRIBE";
     }
   }).catch(function() {
     document.getElementById("subMsg").textContent = "Network error.";
-    document.getElementById("subMsg").style.color = "#c44";
+    document.getElementById("subMsg").style.color = "#c0392b";
     btn.textContent = "SUBSCRIBE";
   });
   return false;
@@ -410,12 +457,12 @@ function submitReaderSub(e) {
       msg.style.color = "#2d7a4a";
     } else {
       msg.textContent = "Something went wrong.";
-      msg.style.color = "#c44";
+      msg.style.color = "#c0392b";
       btn.textContent = "SUBSCRIBE";
     }
   }).catch(function() {
     msg.textContent = "Network error.";
-    msg.style.color = "#c44";
+    msg.style.color = "#c0392b";
     btn.textContent = "SUBSCRIBE";
   });
   return false;
@@ -675,6 +722,9 @@ var FS = [
   "varying vec2 vU;",
   "uniform sampler2D uT;",
   "uniform vec3 uEye;",
+  "uniform vec4 uCoupon;", // subscribe-coupon rect in UV: x0,y0,x1,y1
+  "uniform float uShineX;", // sweep centre in UV.x
+  "uniform float uShineA;", // sweep intensity 0..1 (0 = inactive)
   "void main() {",
   "  vec3 n = normalize(gl_FrontFacing ? vN : -vN);",
   "  vec3 L1 = normalize(vec3(0.45, 0.85, 1.0));",
@@ -699,6 +749,14 @@ var FS = [
   "  float vig = smoothstep(0.0, 0.06, vU.x) * smoothstep(1.0, 0.94, vU.x)",
   "            * smoothstep(0.0, 0.03, vU.y) * smoothstep(1.0, 0.97, vU.y);",
   "  col *= mix(0.88, 1.0, vig);",
+  // Procedural light sweep across the subscribe coupon (no texture re-upload)
+  "  if (uShineA > 0.0 && vU.x > uCoupon.x && vU.x < uCoupon.z && vU.y > uCoupon.y && vU.y < uCoupon.w) {",
+  "    float sx = uShineX + (vU.y - uCoupon.y) * 0.12;", // slight diagonal slant
+  "    float d = abs(vU.x - sx);",
+  "    float glow = smoothstep(0.13, 0.0, d) * 0.16;",
+  "    float glint = smoothstep(0.012, 0.0, d) * 0.33;",
+  "    col += (glow + glint) * uShineA;",
+  "  }",
   "  gl_FragColor = vec4(col, 1.0);",
   "}"
 ].join("\n");
@@ -718,6 +776,9 @@ var aU = gl.getAttribLocation(prog, "aU");
 var uVP = gl.getUniformLocation(prog, "uVP");
 var uT  = gl.getUniformLocation(prog, "uT");
 var uEye = gl.getUniformLocation(prog, "uEye");
+var uCoupon = gl.getUniformLocation(prog, "uCoupon");
+var uShineX = gl.getUniformLocation(prog, "uShineX");
+var uShineA = gl.getUniformLocation(prog, "uShineA");
 gl.enableVertexAttribArray(aP);
 gl.enableVertexAttribArray(aN);
 gl.enableVertexAttribArray(aU);
@@ -1013,6 +1074,7 @@ function calcNormals() {
    ═══════════════════════════════════════════ */
 
 function frame() {
+  updateShine(performance.now());
   simulate();
   calcNormals();
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

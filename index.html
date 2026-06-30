@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#dbd8d3">
+<meta name="theme-color" content="#e9e7e4">
 <title>whoiswriting — Cole Ryan</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=3">
@@ -20,8 +20,8 @@
 <meta name="twitter:image" content="https://coleryan.co/og.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html{background:#d9d6d1}
-body{background:radial-gradient(ellipse at 50% 38%,#eceae7,#d9d6d1);background-color:#d9d6d1;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;min-height:100dvh}
+html{background:#e9e7e4}
+body{background:#e9e7e4;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;min-height:100dvh}
 canvas#c{position:fixed;top:0;left:0;width:100vw;height:100vh;cursor:grab}
 canvas#c.grabbing{cursor:grabbing}
 .hint{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:#555150;font-size:13px;letter-spacing:.06em;font-weight:400;pointer-events:none;z-index:1}
@@ -30,7 +30,7 @@ canvas#c.grabbing{cursor:grabbing}
 .overlay{position:fixed;inset:0;z-index:10;display:none;opacity:0;transition:opacity .3s ease}
 .overlay.show{display:flex;opacity:1}
 .overlay-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.sub-modal{position:relative;margin:auto;background:#f6f2eb;padding:48px 40px;max-width:380px;width:90%;font-family:'Courier New',monospace;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.sub-modal{position:relative;margin:auto;background:#f6f2eb;padding:48px 40px;max-width:380px;width:90%;font-family:'Courier New',monospace;color:#1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.2);transition:transform .35s ease,opacity .35s ease}
 .sub-modal h2{font-size:18px;letter-spacing:.12em;text-align:center;margin-bottom:28px;font-weight:700}
 .sub-modal label{display:block;font-size:11px;color:#6b6660;letter-spacing:.08em;margin-bottom:4px}
 .sub-modal input{display:block;width:100%;background:transparent;border:none;border-bottom:1.5px solid #c5c0b8;padding:8px 0;font-family:inherit;font-size:15px;color:#1a1a1a;outline:none;margin-bottom:20px;-webkit-user-select:text;user-select:text}
@@ -234,6 +234,18 @@ var readerCount = "92,563";
 // Subscribe-coupon rect in UV space [x0,y0,x1,y1], set by makeReceipt and read
 // by the render loop to drive the procedural shine sweep in the fragment shader.
 var couponUV = [0, 0, 0, 0];
+// Tear-out: when the visitor subscribes, the coupon peels out of the receipt as its
+// own rigid, scripted mesh — ripping left → right like a pre-perforated magazine
+// insert someone pulled from the corner. The receipt is left with a clean rectangular
+// hole; the coupon's interior grid verts are pinned in place as invisible anchors so
+// the rest of the receipt keeps its shape.
+var torn = false;
+var cCut = null;                       // (kept for the constraint-loop guard; unused now)
+var cpVis = false, cpT0 = 0, cpAlpha = 1;
+var cpRest = null, cpUv = null, cpNrm = null, cpPos = null, cpTri = null, cpN = 0;
+var cpMinX = 0, cpMaxX = 0, cpMidY = 0, cpZ = 0;
+var cpHold = null, cpCc = null, cpRestC = null; // snapshot + centres for the drop handoff
+var PEEL_MS = 1700;                    // left→right rip; then it floats down like dropped paper
 
 function roundRectPath(c, x, y, w, h, r) {
   c.beginPath();
@@ -309,8 +321,8 @@ function makeReceipt() {
   x.stroke();
   x.restore();
 
-  // Whole coupon is the subscribe tap zone
-  tapZones.push({ uvTop: cpTop / H, uvBot: cpBot / H, type: "subscribe", idx: -1 });
+  // Whole coupon is the subscribe tap zone (gone once the coupon is torn out)
+  if (!torn) tapZones.push({ uvTop: cpTop / H, uvBot: cpBot / H, type: "subscribe", idx: -1 });
   // Expose the coupon rect (UV) so the shader can sweep a light highlight over it
   couponUV[0] = cpL / W; couponUV[1] = cpTop / H; couponUV[2] = cpR / W; couponUV[3] = cpBot / H;
 
@@ -385,7 +397,8 @@ setInterval(function() {
 
 // Per-frame: sweep a light highlight across the coupon via shader uniforms.
 function updateShine(now) {
-  var CYCLE = 8500, DUR = 2600; // 2.6s glow wipe, repeats every 8.5s
+  if (torn) { gl.uniform1f(uShineA, 0.0); return; } // coupon gone — nothing to light up
+  var CYCLE = 9500, DUR = 2900; // 2.9s glow wipe, repeats every 9.5s (extra ~1s pause between sweeps)
   gl.uniform4f(uCoupon, couponUV[0], couponUV[1], couponUV[2], couponUV[3]);
   var ph = now % CYCLE;
   if (ph < DUR) {
@@ -407,8 +420,20 @@ function openSub() {
   document.getElementById("subOverlay").classList.add("show");
   document.getElementById("subMsg").textContent = "";
   document.getElementById("subForm").style.display = "";
+  var b = document.getElementById("subBtn");
+  b.textContent = "SUBSCRIBE"; b.disabled = false; b.style.background = "";
 }
-function closeSub() { document.getElementById("subOverlay").classList.remove("show"); }
+function closeSub() {
+  var o = document.getElementById("subOverlay");
+  var m = o.querySelector(".sub-modal");
+  o.style.opacity = "0";                       // fade backdrop (overrides .show's opacity:1)
+  if (m) { m.style.transform = "scale(.97)"; m.style.opacity = "0"; } // settle the card back
+  setTimeout(function() {
+    o.classList.remove("show");
+    o.style.opacity = "";
+    if (m) { m.style.transform = ""; m.style.opacity = ""; }
+  }, 350);
+}
 function submitSub(e) {
   e.preventDefault();
   var email = document.getElementById("subEmail").value;
@@ -423,9 +448,14 @@ function submitSub(e) {
     body: JSON.stringify(body)
   }).then(function(r) {
     if (r.ok || r.status === 200 || r.status === 201) {
-      document.getElementById("subForm").style.display = "none";
-      document.getElementById("subMsg").textContent = "\u2713 You\u2019re in. Welcome.";
-      document.getElementById("subMsg").style.color = "#2d7a4a";
+      btn.textContent = "SUBSCRIBED \u2713";
+      btn.disabled = true;
+      btn.style.background = "#2d7a4a";
+      // Beat on "SUBSCRIBED", fade the modal cleanly back to the receipt, then rip the coupon out.
+      setTimeout(function() {
+        closeSub();
+        setTimeout(startTear, 380); // begin as the modal finishes clearing \u2014 receipt fully in view
+      }, 800);
     } else {
       document.getElementById("subMsg").textContent = "Something went wrong.";
       document.getElementById("subMsg").style.color = "#c0392b";
@@ -727,6 +757,7 @@ var FS = [
   "uniform vec4 uCoupon;", // subscribe-coupon rect in UV: x0,y0,x1,y1
   "uniform float uShineX;", // sweep centre in UV.x
   "uniform float uShineA;", // sweep intensity 0..1 (0 = inactive)
+  "uniform float uAlpha;",  // global opacity (used to fade the torn-out coupon)
   "void main() {",
   "  vec3 n = normalize(gl_FrontFacing ? vN : -vN);",
   "  vec3 L1 = normalize(vec3(0.45, 0.85, 1.0));",
@@ -760,10 +791,12 @@ var FS = [
   "    float body  = exp(-d * d / (2.0 * 0.125 * 0.125));",              // broad warm glow (no hard edge)
   "    float crest = exp(-d * d / (2.0 * 0.038 * 0.038));",              // soft bright heart (not a hairline)
   "    float vfall = smoothstep(0.0, 0.16, ry) * smoothstep(1.0, 0.84, ry);", // fills most of the height
-  "    float sheen = (body * 0.6 + crest * 0.5) * mix(0.82, 1.0, vfall);",
+  "    float rx = (vU.x - uCoupon.x) / (uCoupon.z - uCoupon.x);",       // 0..1 across the coupon
+  "    float hfall = smoothstep(0.0, 0.12, rx) * smoothstep(1.0, 0.88, rx);", // dissolve at the side edges, no hard clip
+  "    float sheen = (body * 0.6 + crest * 0.5) * mix(0.82, 1.0, vfall) * hfall;",
   "    col += sheen * 0.32 * uShineA * vec3(1.0, 0.95, 0.86);",          // warm, luminous wipe
   "  }",
-  "  gl_FragColor = vec4(col, 1.0);",
+  "  gl_FragColor = vec4(col, uAlpha);",
   "}"
 ].join("\n");
 
@@ -785,12 +818,17 @@ var uEye = gl.getUniformLocation(prog, "uEye");
 var uCoupon = gl.getUniformLocation(prog, "uCoupon");
 var uShineX = gl.getUniformLocation(prog, "uShineX");
 var uShineA = gl.getUniformLocation(prog, "uShineA");
+var uAlpha = gl.getUniformLocation(prog, "uAlpha");
+gl.uniform1f(uAlpha, 1.0);
 gl.enableVertexAttribArray(aP);
 gl.enableVertexAttribArray(aN);
 gl.enableVertexAttribArray(aU);
 
 var posBuf = gl.createBuffer(), nrmBuf = gl.createBuffer();
 var uvBuf = gl.createBuffer(), idxBuf = gl.createBuffer();
+// Separate buffers for the torn-out coupon card (its own rigid, scripted mesh).
+var cpPosBuf = gl.createBuffer(), cpNrmBuf = gl.createBuffer();
+var cpUvBuf = gl.createBuffer(), cpIdxBuf = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
 gl.bufferData(gl.ARRAY_BUFFER, uvs, gl.STATIC_DRAW);
 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
@@ -1023,6 +1061,7 @@ function simulate() {
     if (it & 1) { start = NC-1; end = -1; step = -1; }
     else        { start = 0;    end = NC;  step = 1;  }
     for (var c = start; c !== end; c += step) {
+      if (cCut && cCut[c]) continue; // severed along the torn-out coupon perforation
       var a = cA[c], b = cB[c], rest = cR[c];
       var ax = a*3, bx = b*3;
       var dx = pos[bx]-pos[ax], dy = pos[bx+1]-pos[ax+1], dz = pos[bx+2]-pos[ax+2];
@@ -1054,6 +1093,162 @@ function simulate() {
 }
 
 /* ═══════════════════════════════════════════
+   Tear-out — the coupon leaves the receipt as its own rigid,
+   scripted mesh: a pre-perforated card pulled from the corner
+   and ripped left → right, then lifted away. The receipt keeps
+   a clean rectangular hole and holds its shape via pinned
+   invisible anchors where the coupon used to be.
+   ═══════════════════════════════════════════ */
+
+function startTear() {
+  if (torn) return;
+  torn = true;
+
+  var x0 = couponUV[0], y0 = couponUV[1], x1 = couponUV[2], y1 = couponUV[3];
+  function cellIn(i, j) {
+    var cu = (i + 0.5) / COLS, cv = (j + 0.5) / ROWS;
+    return cu > x0 && cu < x1 && cv > y0 && cv < y1;
+  }
+
+  // 1) Pin the coupon's interior grid verts in place. They become invisible anchors:
+  //    the receipt above and below the hole stay tethered to their rest positions,
+  //    so the body keeps its shape instead of sagging onto the thin side margins.
+  for (var i = 0; i < NP; i++) {
+    var u = uvs[i*2], v = uvs[i*2+1];
+    if (u > x0 && u < x1 && v > y0 && v < y1) pin[i] = 1;
+  }
+
+  // 2) Leave the receipt with a clean rectangular hole: drop the coupon cells (once,
+  //    statically — no per-frame index churn, so the edge stays crisp).
+  var nt = [];
+  for (var j = 0; j < ROWS; j++) for (var i = 0; i < COLS; i++) {
+    if (cellIn(i, j)) continue;
+    var tl = j*NX + i;
+    nt.push(tl, tl+NX, tl+1, tl+1, tl+NX, tl+NX+1);
+  }
+  tri = new Uint16Array(nt); NI = tri.length;
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, tri, gl.STATIC_DRAW);
+
+  // 3) Build the coupon card as a separate mesh — a snapshot of exactly those cells,
+  //    so at rest it fills the hole perfectly, then peels away rigidly.
+  var map = new Int32Array(NP); for (var i = 0; i < NP; i++) map[i] = -1;
+  var src = [], ct = [];
+  for (var j = 0; j < ROWS; j++) for (var i = 0; i < COLS; i++) {
+    if (!cellIn(i, j)) continue;
+    var tl = j*NX + i, a = tl, b = tl+NX, c = tl+1, d = tl+NX+1;
+    var q = [a, b, c, d];
+    for (var z = 0; z < 4; z++) if (map[q[z]] < 0) { map[q[z]] = src.length; src.push(q[z]); }
+    ct.push(map[a], map[b], map[c], map[c], map[b], map[d]); // match receipt winding
+  }
+  cpN = src.length;
+  cpRest = new Float32Array(cpN*3);
+  cpPos  = new Float32Array(cpN*3);
+  cpUv   = new Float32Array(cpN*2);
+  cpNrm  = new Float32Array(cpN*3);
+  cpMinX = 1e9; cpMaxX = -1e9; var sx = 0, sy = 0, sz = 0;
+  for (var k = 0; k < cpN; k++) {
+    var o = src[k], px = pos[o*3], py = pos[o*3+1], pz = pos[o*3+2];
+    cpRest[k*3] = px; cpRest[k*3+1] = py; cpRest[k*3+2] = pz;
+    cpUv[k*2] = uvs[o*2]; cpUv[k*2+1] = uvs[o*2+1];
+    if (px < cpMinX) cpMinX = px;
+    if (px > cpMaxX) cpMaxX = px;
+    sx += px; sy += py; sz += pz;
+  }
+  cpMidY = sy / cpN; cpZ = sz / cpN;
+  cpRestC = [sx / cpN, cpMidY, cpZ];
+  cpHold = null; cpCc = null;
+  cpTri = new Uint16Array(ct);
+  cpPos.set(cpRest);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, cpUvBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, cpUv, gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cpIdxBuf);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cpTri, gl.STATIC_DRAW);
+
+  cpAlpha = 1; cpVis = true; cpT0 = performance.now();
+}
+
+// Per-frame: shape the coupon card — rip it free, then float it down — and upload it.
+function updateTear(now) {
+  if (!cpVis) return;
+  var t = now - cpT0, k;
+
+  if (t < PEEL_MS) {
+    // ── Rip: a gentle bend front sweeps left → right, lifting the card off the page.
+    var peel = t / PEEL_MS, ep = peel * peel * (3 - 2 * peel);
+    var fx = (cpMinX - 0.06) + ep * ((cpMaxX - cpMinX) + 0.18);
+    var R = 1.5, PHI_MAX = 1.9, slope = 0.25;            // gentle bend (a card, not a tight roll); top leads → corner pull
+    for (k = 0; k < cpN; k++) {
+      var rx = cpRest[k*3], ry = cpRest[k*3+1], rz = cpRest[k*3+2];
+      var fxv = fx + (ry - cpMidY) * slope;
+      var s = fxv - rx, X, Z;
+      if (s <= 0) { X = rx; Z = rz; }                    // ahead of the front: still flat
+      else {
+        var phi = s / R;                                 // behind: curled up off the page
+        if (phi <= PHI_MAX) { X = fxv - R*Math.sin(phi); Z = rz + R*(1 - Math.cos(phi)); }
+        else { var extra = s - R*PHI_MAX; X = fxv - R*Math.sin(PHI_MAX) - Math.cos(PHI_MAX)*extra; Z = rz + R*(1 - Math.cos(PHI_MAX)) + Math.sin(PHI_MAX)*extra; }
+      }
+      cpPos[k*3] = X; cpPos[k*3+1] = ry; cpPos[k*3+2] = Z;
+    }
+  } else {
+    // ── Drop: the freed card floats down to the bottom like a dropped sheet of paper.
+    if (!cpHold) { // snapshot the just-curled shape + its centre → seamless handoff (no jerk)
+      cpHold = new Float32Array(cpPos);
+      var hx = 0, hy = 0, hz = 0;
+      for (k = 0; k < cpN; k++) { hx += cpHold[k*3]; hy += cpHold[k*3+1]; hz += cpHold[k*3+2]; }
+      cpCc = [hx/cpN, hy/cpN, hz/cpN];
+    }
+    var tfs = (t - PEEL_MS) / 1000;
+    var env  = Math.min(tfs / 0.6, 1); env  = env*env*(3 - 2*env);    // ease motion in from rest
+    var flat = Math.min(tfs / 0.7, 1); flat = flat*flat*(3 - 2*flat); // relax the curl back to a flat sheet
+
+    var V = 2.8, tau = 0.7;
+    var yOff = -V * (tfs + (Math.exp(-tfs/tau) - 1) * tau);           // ease-in to a gentle terminal drift
+    var sway = (0.55*Math.sin(tfs*2.0) + 0.13*Math.sin(tfs*3.7)) * env; // see-saw side drift
+    var thZ  = 0.26 * Math.sin(tfs*2.0) * env;                        // rock (paired with the sway)
+    var thX  = 0.50 * Math.sin(tfs*1.4) * env;                        // pitch flutter (shows both faces)
+
+    var cX = Math.cos(thX), sX = Math.sin(thX), cZ = Math.cos(thZ), sZ = Math.sin(thZ);
+    var mx = cpCc[0] + sway;
+    var my = cpCc[1] + yOff;
+    var mz = cpCc[2] * (1 - flat) + 0.20 * flat;                      // settle the lift toward (just in front of) the page
+
+    for (k = 0; k < cpN; k++) {
+      var lx = (cpHold[k*3]   - cpCc[0]) * (1 - flat) + (cpRest[k*3]   - cpRestC[0]) * flat;
+      var ly = (cpHold[k*3+1] - cpCc[1]) * (1 - flat) + (cpRest[k*3+1] - cpRestC[1]) * flat;
+      var lz = (cpHold[k*3+2] - cpCc[2]) * (1 - flat) + (cpRest[k*3+2] - cpRestC[2]) * flat;
+      // Flex: gentle travelling ripples down the sheet so it bends with the air, not like a board.
+      lz += (0.16*Math.sin(lx*1.7 + tfs*4.6) + 0.07*Math.sin(lx*3.4 + ly*2.3 - tfs*6.2)) * env;
+      var ly2 = ly*cX - lz*sX, lz2 = ly*sX + lz*cX;                   // pitch about X
+      var lx2 = lx*cZ - ly2*sZ, ly3 = lx*sZ + ly2*cZ;                // rock about Z
+      cpPos[k*3] = mx + lx2; cpPos[k*3+1] = my + ly3; cpPos[k*3+2] = mz + lz2;
+    }
+    if (my < camY - 5.2) cpVis = false;                              // floated past the bottom edge
+  }
+
+  // Recompute card normals so the curl/flutter is lit correctly.
+  cpNrm.fill(0);
+  for (var ti2 = 0; ti2 < cpTri.length; ti2 += 3) {
+    var i0 = cpTri[ti2], i1 = cpTri[ti2+1], i2 = cpTri[ti2+2];
+    var e1x = cpPos[i1*3]-cpPos[i0*3], e1y = cpPos[i1*3+1]-cpPos[i0*3+1], e1z = cpPos[i1*3+2]-cpPos[i0*3+2];
+    var e2x = cpPos[i2*3]-cpPos[i0*3], e2y = cpPos[i2*3+1]-cpPos[i0*3+1], e2z = cpPos[i2*3+2]-cpPos[i0*3+2];
+    var nx = e1y*e2z-e1z*e2y, ny = e1z*e2x-e1x*e2z, nz = e1x*e2y-e1y*e2x;
+    cpNrm[i0*3]+=nx; cpNrm[i0*3+1]+=ny; cpNrm[i0*3+2]+=nz;
+    cpNrm[i1*3]+=nx; cpNrm[i1*3+1]+=ny; cpNrm[i1*3+2]+=nz;
+    cpNrm[i2*3]+=nx; cpNrm[i2*3+1]+=ny; cpNrm[i2*3+2]+=nz;
+  }
+  for (var k = 0; k < cpN; k++) {
+    var x = cpNrm[k*3], y = cpNrm[k*3+1], z = cpNrm[k*3+2];
+    var l = Math.sqrt(x*x + y*y + z*z) || 1;
+    cpNrm[k*3]/=l; cpNrm[k*3+1]/=l; cpNrm[k*3+2]/=l;
+  }
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, cpPosBuf); gl.bufferData(gl.ARRAY_BUFFER, cpPos, gl.DYNAMIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, cpNrmBuf); gl.bufferData(gl.ARRAY_BUFFER, cpNrm, gl.DYNAMIC_DRAW);
+}
+
+/* ═══════════════════════════════════════════
    Normals
    ═══════════════════════════════════════════ */
 
@@ -1080,7 +1275,9 @@ function calcNormals() {
    ═══════════════════════════════════════════ */
 
 function frame() {
-  updateShine(performance.now());
+  var now = performance.now();
+  updateShine(now);
+  updateTear(now);
   simulate();
   calcNormals();
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -1106,18 +1303,39 @@ function frame() {
   gl.drawElements(gl.TRIANGLES, NI, gl.UNSIGNED_SHORT, 0);
   gl.disable(gl.CULL_FACE);
 
+  // Torn-out coupon card — its own rigid mesh, drawn on top.
+  if (cpVis) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, cpPosBuf); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cpNrmBuf); gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, cpUvBuf);  gl.vertexAttribPointer(aU, 2, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cpIdxBuf);
+    if (cpAlpha < 1) { gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); }
+    gl.uniform1f(uAlpha, cpAlpha);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    gl.drawElements(gl.TRIANGLES, cpTri.length, gl.UNSIGNED_SHORT, 0);
+    gl.cullFace(gl.BACK);
+    gl.drawElements(gl.TRIANGLES, cpTri.length, gl.UNSIGNED_SHORT, 0);
+    gl.disable(gl.CULL_FACE);
+    gl.uniform1f(uAlpha, 1.0);
+    if (cpAlpha < 1) gl.disable(gl.BLEND);
+    // restore receipt attribute bindings for the next frame's draws happens at top of frame()
+  }
+
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-window.addEventListener("resize", function() {
+function onResize() {
   cssW = window.innerWidth; cssH = window.innerHeight;
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(cssW * dpr);
   canvas.height = Math.round(cssH * dpr);
+  canvas.style.width = cssW + "px";        // match drawing buffer 1:1 (no vertical stretch in in-app browsers)
+  canvas.style.height = cssH + "px";
   gl.viewport(0, 0, canvas.width, canvas.height);
   isMobile = cssW < 600;
-  camY = isMobile ? -2.2 : -3;
+  camY = isMobile ? -3.4 : -3;             // frames the whole receipt (was -2.2, which pushed it down & clipped the bottom)
   eye[1] = camY; center[1] = camY;
   lookAt(vMat, eye, center, [0, 1, 0]);
   persp(pMat, Math.PI * 0.28, cssW / cssH, 0.1, 100);
@@ -1127,7 +1345,13 @@ window.addEventListener("resize", function() {
   gl.uniform3f(uEye, eye[0], eye[1], eye[2]);
   baseProj = projPt(0, camY, 0);
   dragZ = baseProj[2];
-});
+}
+window.addEventListener("resize", onResize);
+// In-app browsers (X, Instagram, …) animate their chrome, changing the visible area —
+// and X opens the link in a preview webview first. Re-frame on those changes so the
+// receipt is never pushed down or clipped.
+if (window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
+onResize();
 
 fetchArticles();
 
